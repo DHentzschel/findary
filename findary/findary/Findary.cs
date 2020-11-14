@@ -255,7 +255,18 @@ namespace findary
 
         private void ProcessFiles(string directory)
         {
-            foreach (var file in Directory.EnumerateFiles(directory))
+            IEnumerable<string> files;
+            try
+            {
+                files = Directory.EnumerateFiles(directory);
+            }
+            catch (Exception e)
+            {
+                PrintVerbosely("Could not enumerate files in directory " + directory + ". " + e.Message);
+                return;
+            }
+
+            foreach (var file in files)
             {
                 if (IsIgnored(file))
                 {
