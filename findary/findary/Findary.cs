@@ -43,22 +43,20 @@ namespace findary
                 return;
             }
 
-            foreach (var fileExtension in _binaryFileExtensions)
-            {
-                TrackFile(fileExtension, true);
-            }
-
-            foreach (var file in _binaryFiles)
-            {
-                TrackFile(file);
-            }
+            TrackFiles(_binaryFileExtensions.Concat("*."));
+            TrackFiles(_binaryFiles.Concat(string.Empty));
         }
 
-        private bool TrackFile(string filename, bool isExtension = false)
+        private void TrackFiles(string arguments)
         {
-            var prefix = isExtension ? "*." : string.Empty;
-            var output = GetNewProcessOutput(GetGitLfsFilename(), GetGitLfsArguments("track \"" + prefix + filename + '"'));
-            return output.StartsWith("Tracking \"");
+            var output = GetNewProcessOutput(GetGitLfsFilename(), GetGitLfsArguments("track " + arguments, true));
+            var lines = output.Split('\n');
+            var penultimateLine = lines.Length > 1 ? lines[^2] : string.Empty;
+            if (output.StartsWith("Tracking \"") || penultimateLine.EndsWith("already supported"))
+            {
+                return;
+            }
+            PrintVerbosely("Could not track files. Process output is: " + output, true);
         }
 
         private static string GetFormattedFileExtension(string file)
