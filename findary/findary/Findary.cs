@@ -92,6 +92,7 @@ namespace findary
                 PrintVerbosely("Could not read file " + filePath + ". " + e.Message);
                 return false;
             }
+
             var bytes = new byte[1024];
             int bytesRead;
             var isFirstBlock = true;
