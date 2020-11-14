@@ -69,7 +69,16 @@ namespace findary
 
         private static string GetGitFilename() => "git";
 
-        private static string GetGitLfsArguments(string args) => (!OperatingSystem.IsWindows() ? "lfs" : string.Empty) + ' ' + args;
+        private string GetGitLfsArguments(string args, bool executeInRepository = false)
+        {
+            var result = "";
+            if (executeInRepository)
+            {
+                result = "-C " + _options.Directory + ' ';
+            }
+            result += (OperatingSystem.IsWindows() ? "lfs " : string.Empty) + args;
+            return result;
+        }
 
         private static string GetGitLfsFilename() => GetGitFilename() + (!OperatingSystem.IsWindows() ? "-lfs" : string.Empty);
 
