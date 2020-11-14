@@ -5,6 +5,16 @@ namespace findary
 {
     public static class Extensions
     {
+        public static string Concat(this IEnumerable<string> input, string prefix)
+        {
+            var result = string.Empty;
+            foreach (var str in input)
+            {
+                result += '"' + prefix + str + "\" ";
+            }
+            return result;
+        }
+
         public static bool HasBom(this IReadOnlyList<byte> input)
         {
             return input.IsUtf8()
