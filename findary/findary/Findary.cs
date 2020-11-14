@@ -186,7 +186,7 @@ namespace findary
 
         private bool InstallGitLfs()
         {
-            var output = GetNewProcessOutput(GetGitLfsFilename(), GetGitLfsArguments("install"));
+            var output = GetNewProcessOutput(GetGitLfsFilename(), GetGitLfsArguments("install", true));
             return output.EndsWith("Git LFS initialized.");
         }
 
