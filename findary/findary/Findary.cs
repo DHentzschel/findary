@@ -59,10 +59,10 @@ namespace findary
             PrintVerbosely("Could not track files. Process output is: " + output, true);
         }
 
-        private static string GetFormattedFileExtension(string file)
+        private static (string, string) GetFormattedFileExtension(string file)
         {
             var fileExtension = Path.GetExtension(file);
-            return string.IsNullOrEmpty(fileExtension) ? null : fileExtension.ToLower()[1..];
+            return string.IsNullOrEmpty(fileExtension) ? (null, null) : (fileExtension.ToLower()[1..], fileExtension);
         }
 
         private static string GetGitFilename() => "git";
