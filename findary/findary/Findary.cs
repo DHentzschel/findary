@@ -249,7 +249,7 @@ namespace findary
                 var (formattedExtension, originalExtension) = GetFormattedFileExtension(file);
                 if (IsIgnored(originalExtension))
                 {
-                    PrintVerbosely("Found .gitignore match. Continuing..");
+                    PrintVerbosely("Found .gitignore match for file: " + file);
                     continue;
                 }
                 if (formattedExtension == null) // File has no extension
