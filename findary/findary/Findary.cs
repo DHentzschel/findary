@@ -194,7 +194,7 @@ namespace findary
         {
             const string arguments = "version";
             var gitInstalled = IsInstalled(GetGitFilename(), arguments, "git version");
-            return gitInstalled && IsInstalled(GetGitLfsFilename(), GetGitLfsArguments("arguments"), "git-lfs/");
+            return gitInstalled && IsInstalled(GetGitLfsFilename(), GetGitLfsArguments(arguments), "git-lfs/");
         }
         private bool IsIgnored(string file) => _options.ExcludeGitignore && _ignoreGlobs.Any(p => p.IsMatch(file));
 
