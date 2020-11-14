@@ -230,7 +230,18 @@ namespace findary
                 return;
             }
 
-            foreach (var dir in Directory.EnumerateDirectories(directory))
+            IEnumerable<string> directories;
+            try
+            {
+                directories = Directory.EnumerateDirectories(directory);
+            }
+            catch (Exception e)
+            {
+                PrintVerbosely("Could not enumerate directories in directory " + directory + ". " + e.Message);
+                return;
+            }
+
+            foreach (var dir in directories)
             {
                 ProcessDirectory(dir);
             }
