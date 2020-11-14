@@ -13,7 +13,6 @@ namespace findary
         private readonly List<string> _binaryFiles = new List<string>();
 
         private List<Glob> _ignoreGlobs;
-
         private Options _options;
 
         public void Run(Options options)
@@ -23,7 +22,6 @@ namespace findary
             var stopwatch = new Stopwatch();
             stopwatch.Start();
             _ignoreGlobs = GetGlobs(options.Directory);
-            //todo read gitattributes
             ProcessDirectory(options.Directory);
             PrintVerbosely("Time elapsed reading: " + stopwatch.ElapsedMilliseconds + "ms");
 
@@ -36,29 +34,6 @@ namespace findary
             PrintVerbosely("Time elapsed tracking: " + stopwatch.ElapsedMilliseconds + "ms");
         }
 
-        private void TrackFiles()
-        {
-            if (!_options.Track || !IsGitAvailable() || !InstallGitLfs())
-            {
-                return;
-            }
-
-            TrackFiles(_binaryFileExtensions.Concat("*."));
-            TrackFiles(_binaryFiles.Concat(string.Empty));
-        }
-
-        private void TrackFiles(string arguments)
-        {
-            var output = GetNewProcessOutput(GetGitLfsFilename(), GetGitLfsArguments("track " + arguments, true));
-            var lines = output.Split('\n');
-            var penultimateLine = lines.Length > 1 ? lines[^2] : string.Empty;
-            if (output.StartsWith("Tracking \"") || penultimateLine.EndsWith("already supported"))
-            {
-                return;
-            }
-            PrintVerbosely("Could not track files. Process output is: " + output, true);
-        }
-
         private static (string, string) GetFormattedFileExtension(string file)
         {
             var fileExtension = Path.GetExtension(file);
@@ -66,6 +41,8 @@ namespace findary
         }
 
         private static string GetGitFilename() => "git";
+
+        private static string GetGitLfsFilename() => GetGitFilename() + (!OperatingSystem.IsWindows() ? "-lfs" : string.Empty);
 
         private string GetGitLfsArguments(string args, bool executeInRepository = false)
         {
@@ -76,42 +53,6 @@ namespace findary
             }
             result += (OperatingSystem.IsWindows() ? "lfs " : string.Empty) + args;
             return result;
-        }
-
-        private static string GetGitLfsFilename() => GetGitFilename() + (!OperatingSystem.IsWindows() ? "-lfs" : string.Empty);
-
-        private bool IsFileBinary(string filePath)
-        {
-            FileStream fileStream;
-            try
-            {
-                fileStream = File.OpenRead(filePath);
-            }
-            catch (Exception e)
-            {
-                PrintVerbosely("Could not read file " + filePath + ". " + e.Message);
-                return false;
-            }
-
-            var bytes = new byte[1024];
-            int bytesRead;
-            var isFirstBlock = true;
-            while ((bytesRead = fileStream.Read(bytes, 0, bytes.Length)) > 0)
-            {
-                if (isFirstBlock && bytes.HasBom())
-                {
-                    return false;
-                }
-
-                var zeroIndex = Array.FindIndex(bytes, p => p == '\0');
-                if (zeroIndex > -1 && zeroIndex < bytesRead - 1)
-                {
-                    return true;
-                }
-
-                isFirstBlock = false;
-            }
-            return false;
         }
 
         private List<Glob> GetGlobs(string directory)
@@ -191,12 +132,47 @@ namespace findary
             return output.EndsWith("Git LFS initialized.");
         }
 
+        private bool IsFileBinary(string filePath)
+        {
+            FileStream fileStream;
+            try
+            {
+                fileStream = File.OpenRead(filePath);
+            }
+            catch (Exception e)
+            {
+                PrintVerbosely("Could not read file " + filePath + ". " + e.Message);
+                return false;
+            }
+
+            var bytes = new byte[1024];
+            int bytesRead;
+            var isFirstBlock = true;
+            while ((bytesRead = fileStream.Read(bytes, 0, bytes.Length)) > 0)
+            {
+                if (isFirstBlock && bytes.HasBom())
+                {
+                    return false;
+                }
+
+                var zeroIndex = Array.FindIndex(bytes, p => p == '\0');
+                if (zeroIndex > -1 && zeroIndex < bytesRead - 1)
+                {
+                    return true;
+                }
+
+                isFirstBlock = false;
+            }
+            return false;
+        }
+
         private bool IsGitAvailable()
         {
             const string arguments = "version";
             var gitInstalled = IsInstalled(GetGitFilename(), arguments, "git version");
             return gitInstalled && IsInstalled(GetGitLfsFilename(), GetGitLfsArguments(arguments), "git-lfs/");
         }
+
         private bool IsIgnored(string file) => _options.ExcludeGitignore && _ignoreGlobs.Any(p => p.IsMatch(file));
 
         private bool IsInstalled(string filename, string arguments, string outputPrefix)
@@ -209,6 +185,7 @@ namespace findary
             PrintVerbosely("Could not detect a installed version of " + filename, true);
             return false;
         }
+
         private void PrintVerbosely(string message, bool isError = false)
         {
             if (!_options.Verbose)
@@ -304,6 +281,7 @@ namespace findary
                 PrintVerbosely(message);
             }
         }
+
         private bool ShouldBeAdded(string fileExtension, string file)
         {
             if (fileExtension == null)
@@ -311,6 +289,29 @@ namespace findary
                 return false;
             }
             return !_binaryFileExtensions.Contains(fileExtension) && IsFileBinary(file);
+        }
+
+        private void TrackFiles()
+        {
+            if (!_options.Track || !IsGitAvailable() || !InstallGitLfs())
+            {
+                return;
+            }
+
+            TrackFiles(_binaryFileExtensions.Concat("*."));
+            TrackFiles(_binaryFiles.Concat(string.Empty));
+        }
+
+        private void TrackFiles(string arguments)
+        {
+            var output = GetNewProcessOutput(GetGitLfsFilename(), GetGitLfsArguments("track " + arguments, true));
+            var lines = output.Split('\n');
+            var penultimateLine = lines.Length > 1 ? lines[^2] : string.Empty;
+            if (output.StartsWith("Tracking \"") || penultimateLine.EndsWith("already supported"))
+            {
+                return;
+            }
+            PrintVerbosely("Could not track files. Process output is: " + output, true);
         }
     }
 }
