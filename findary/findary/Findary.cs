@@ -246,13 +246,13 @@ namespace findary
 
             foreach (var file in files)
             {
-                var fileExtension = GetFormattedFileExtension(file);
-                if (IsIgnored(fileExtension.Item2))
+                var (formattedExtension, originalExtension) = GetFormattedFileExtension(file);
+                if (IsIgnored(originalExtension))
                 {
                     PrintVerbosely("Found .gitignore match. Continuing..");
                     continue;
                 }
-                if (fileExtension.Item1 == null) // File has no extension
+                if (formattedExtension == null) // File has no extension
                 {
                     if (IsFileBinary(file))
                     {
@@ -263,21 +263,20 @@ namespace findary
                             {
                                 relativePath = relativePath[1..].Replace('\\', '/');
                                 _binaryFiles.Add(relativePath);
-                                // TODO
                             }
                         }
                     }
                     continue;
                 }
 
-                if (!ShouldBeAdded(fileExtension.Item1, file))
+                if (!ShouldBeAdded(formattedExtension, file))
                 {
                     continue;
                 }
 
-                _binaryFileExtensions.Add(fileExtension.Item1);
+                _binaryFileExtensions.Add(formattedExtension);
 
-                var message = "Added file type " + fileExtension.Item1.ToUpper() + " from file path: " + file;
+                var message = "Added file type " + formattedExtension.ToUpper() + " from file path: " + file;
                 PrintVerbosely(message);
             }
         }
