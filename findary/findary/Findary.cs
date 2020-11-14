@@ -15,6 +15,12 @@ namespace findary
         private List<Glob> _ignoreGlobs;
         private Options _options;
 
+        private int _directoriesProcessed;
+        private int _filesProcessed;
+
+        private int _directoriesTotal = 1;
+        private int _filesTotal;
+
         public void Run(Options options)
         {
             _options = options;
@@ -22,6 +28,7 @@ namespace findary
             var stopwatch = new Stopwatch();
             stopwatch.Start();
             _ignoreGlobs = GetGlobs(options.Directory);
+            PrintVerbosely("Found " + _ignoreGlobs.Count + " .gitignore globs");
             ProcessDirectory(options.Directory);
             PrintVerbosely("Time elapsed reading: " + stopwatch.ElapsedMilliseconds + "ms");
 
@@ -32,6 +39,9 @@ namespace findary
             stopwatch.Restart();
             TrackFiles();
             PrintVerbosely("Time elapsed tracking: " + stopwatch.ElapsedMilliseconds + "ms");
+            PrintVerbosely("Directories: " + _directoriesProcessed + " processed, " + _directoriesTotal + " total");
+            PrintVerbosely("Files: " + _filesProcessed + " processed, " + _filesTotal + " total");
+            PrintVerbosely("Binaries: " + _binaryFileExtensions.Count + " types, " + _binaryFiles + " files");
         }
 
         private static (string, string) GetFormattedFileExtension(string file)
@@ -144,6 +154,7 @@ namespace findary
                 PrintVerbosely("Could not read file " + filePath + ". " + e.Message);
                 return false;
             }
+            ++_filesProcessed;
 
             var bytes = new byte[1024];
             int bytesRead;
@@ -208,10 +219,10 @@ namespace findary
                 return;
             }
 
-            IEnumerable<string> directories;
+            string[] directories;
             try
             {
-                directories = Directory.EnumerateDirectories(directory);
+                directories = Directory.EnumerateDirectories(directory).ToArray();
             }
             catch (Exception e)
             {
@@ -219,6 +230,7 @@ namespace findary
                 return;
             }
 
+            _directoriesTotal += directories.Length;
             foreach (var dir in directories)
             {
                 ProcessDirectory(dir);
@@ -227,16 +239,17 @@ namespace findary
 
         private void ProcessDirectory(string directory)
         {
+            ++_directoriesProcessed;
             ProcessDirectoriesRecursively(directory);
             ProcessFiles(directory);
         }
 
         private void ProcessFiles(string directory)
         {
-            IEnumerable<string> files;
+            string[] files;
             try
             {
-                files = Directory.EnumerateFiles(directory);
+                files = Directory.EnumerateFiles(directory).ToArray();
             }
             catch (Exception e)
             {
@@ -244,6 +257,7 @@ namespace findary
                 return;
             }
 
+            _filesTotal += files.Length;
             foreach (var file in files)
             {
                 var (formattedExtension, originalExtension) = GetFormattedFileExtension(file);
