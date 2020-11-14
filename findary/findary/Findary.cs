@@ -41,7 +41,7 @@ namespace findary
             PrintVerbosely("Time elapsed tracking: " + stopwatch.ElapsedMilliseconds + "ms");
             PrintVerbosely("Directories: " + _directoriesProcessed + " processed, " + _directoriesTotal + " total");
             PrintVerbosely("Files: " + _filesProcessed + " processed, " + _filesTotal + " total");
-            PrintVerbosely("Binaries: " + _binaryFileExtensions.Count + " types, " + _binaryFiles + " files");
+            PrintVerbosely("Binaries: " + _binaryFileExtensions.Count + " types, " + _binaryFiles.Count + " files");
         }
 
         private static (string, string) GetFormattedFileExtension(string file)
