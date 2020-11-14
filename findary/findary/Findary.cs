@@ -26,6 +26,9 @@ namespace findary
             //todo read gitattributes
             ProcessDirectory(options.Directory);
             PrintVerbosely("Time elapsed reading: " + stopwatch.ElapsedMilliseconds + "ms");
+
+            _binaryFileExtensions.Sort();
+            _binaryFiles.Sort();
             _binaryFileExtensions.ForEach(Console.WriteLine);
 
             stopwatch.Restart();
