@@ -82,7 +82,16 @@ namespace findary
 
         private static bool IsFileBinary(string filePath)
         {
-            using var fileStream = File.OpenRead(filePath);
+            FileStream fileStream;
+            try
+            {
+                fileStream = File.OpenRead(filePath);
+            }
+            catch (Exception e)
+            {
+                PrintVerbosely("Could not read file " + filePath + ". " + e.Message);
+                return false;
+            }
             var bytes = new byte[1024];
             int bytesRead;
             var isFirstBlock = true;
