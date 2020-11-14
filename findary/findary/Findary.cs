@@ -20,11 +20,17 @@ namespace findary
         {
             _options = options;
 
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
             _ignoreGlobs = GetGlobs(options.Directory);
             //todo read gitattributes
             ProcessDirectory(options.Directory);
+            PrintVerbosely("Time elapsed reading: " + stopwatch.ElapsedMilliseconds + "ms");
             _binaryFileExtensions.ForEach(Console.WriteLine);
+
+            stopwatch.Restart();
             TrackFiles();
+            PrintVerbosely("Time elapsed tracking: " + stopwatch.ElapsedMilliseconds + "ms");
         }
 
         private void TrackFiles()
