@@ -80,7 +80,7 @@ namespace findary
 
         private static string GetGitLfsFilename() => GetGitFilename() + (!OperatingSystem.IsWindows() ? "-lfs" : string.Empty);
 
-        private static bool IsFileBinary(string filePath)
+        private bool IsFileBinary(string filePath)
         {
             FileStream fileStream;
             try
@@ -269,15 +269,13 @@ namespace findary
 
             foreach (var file in files)
             {
-                if (IsIgnored(file))
+                var fileExtension = GetFormattedFileExtension(file);
+                if (IsIgnored(fileExtension.Item2))
                 {
                     PrintVerbosely("Found .gitignore match. Continuing..");
                     continue;
                 }
-
-                var fileExtension = GetFormattedFileExtension(file);
-                
-                if (fileExtension == null) // File has no extension
+                if (fileExtension.Item1 == null) // File has no extension
                 {
                     if (IsFileBinary(file))
                     {
@@ -295,14 +293,14 @@ namespace findary
                     continue;
                 }
 
-                if (!ShouldBeAdded(fileExtension, file))
+                if (!ShouldBeAdded(fileExtension.Item1, file))
                 {
                     continue;
                 }
 
-                _binaryFileExtensions.Add(fileExtension);
+                _binaryFileExtensions.Add(fileExtension.Item1);
 
-                var message = "Added file type " + fileExtension.ToUpper() + " from file path: " + file;
+                var message = "Added file type " + fileExtension.Item1.ToUpper() + " from file path: " + file;
                 PrintVerbosely(message);
             }
         }
