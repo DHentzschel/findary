@@ -53,7 +53,7 @@ namespace Findary
         private List<Glob> GetGlobs(string directory)
         {
             var result = new List<Glob>();
-            var filename = ".gitignore";
+            const string filename = ".gitignore";
             var filePath = Path.Combine(directory, filename);
             if (!File.Exists(filePath))
             {
