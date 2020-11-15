@@ -1,7 +1,8 @@
-﻿using System;
+﻿using NLog;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using NLog;
+using System.IO;
 
 namespace Findary
 {
@@ -62,12 +63,12 @@ namespace Findary
                 return;
             }
 
-            var commandLength = "git lfs track -C ".Length + _options.Directory.Length;
-            var concatArguments = fileExtensions.Concat("*.", commandLength);
-            concatArguments.ForEach(TrackFiles);
+            var command = Path.Combine(GetGitDirectory(), GetGitFilename()) + " lfs track -C " + Path.GetFullPath(_options.Directory);
+            var concatArguments = fileExtensions.Concat("*.", command.Length);
+            concatArguments.ForEach(p => TrackFiles(p, statistics));
 
-            concatArguments = files.Concat(string.Empty, commandLength);
-            concatArguments.ForEach(TrackFiles);
+            concatArguments = files.Concat(string.Empty, command.Length);
+            concatArguments.ForEach(p => TrackFiles(p, statistics));
         }
 
         private string GetNewProcessOutput(string filename, string arguments)
