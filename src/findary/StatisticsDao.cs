@@ -8,6 +8,10 @@
 
         public uint IgnoredFiles { get; set; }
 
+        public uint TrackedFiles { get; set; }
+
+        public uint AlreadySupported { get; set; }
+
         public class EntityStatistics
         {
             private readonly string _name;
