@@ -17,7 +17,9 @@ namespace Findary
 
         public static string GetGitFilename() => "git";
 
-        public static string GetGitLfsFilename() => GetGitFilename() + (!OperatingSystem.IsWindows() ? "-lfs" : string.Empty);
+        private static string GetPlatformSpecific(string windows, string other) => OperatingSystem.IsWindows() ? windows : other;
+
+        public static string GetGitLfsFilename() => GetGitFilename() + GetPlatformSpecific(string.Empty, "-lfs");
 
         public string GetGitLfsArguments(string args, bool executeInRepository = false)
         {
@@ -26,7 +28,8 @@ namespace Findary
             {
                 result = "-C " + _options.Directory + ' ';
             }
-            result += (OperatingSystem.IsWindows() ? "lfs " : string.Empty) + args;
+
+            result += GetPlatformSpecific("lfs ", string.Empty) + args;
             return result;
         }
 
@@ -41,14 +44,16 @@ namespace Findary
             var commandLength = "git lfs track -C ".Length + _options.Directory.Length;
 
             var concatArguments = fileExtensions.Concat("*.", commandLength);
-            Console.WriteLine("Tracking extensions: " + string.Join("\n", concatArguments));
             concatArguments.ForEach(TrackFiles);
-            Console.WriteLine("Tracked extensions");
+
+            var message = concatArguments.Count == 0 ? "No extensions to track" : "Tracked " + concatArguments.Count + " extensions";
+            _logger.PrintVerbosely(message);
 
             concatArguments = files.Concat(string.Empty, commandLength);
-            Console.WriteLine("Tracking files: " + string.Join("\n", concatArguments));
             concatArguments.ForEach(TrackFiles);
-            Console.WriteLine("Tracked files");
+
+            message = concatArguments.Count == 0 ? "No files to track" : "Tracked " + concatArguments.Count + " files";
+            _logger.PrintVerbosely(message);
         }
 
         private string GetNewProcessOutput(string filename, string arguments)
