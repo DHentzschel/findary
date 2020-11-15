@@ -18,7 +18,7 @@ namespace findary
         private int _directoriesProcessed;
         private int _filesProcessed;
 
-        private int _directoriesTotal = 1;
+        private int _directoriesTotal;
         private int _filesTotal;
 
         public void Run(Options options)
