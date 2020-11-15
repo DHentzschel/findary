@@ -329,8 +329,17 @@ namespace findary
                 return;
             }
 
-            TrackFiles(_binaryFileExtensions.Concat("*."));
-            TrackFiles(_binaryFiles.Concat(string.Empty));
+            var commandLength = "git lfs track -C ".Length + _options.Directory.Length;
+
+            var concatArguments = _binaryFileExtensions.Concat("*.", commandLength);
+            Console.WriteLine("Tracking extensions: " + string.Join("\n", concatArguments));
+            concatArguments.ForEach(TrackFiles);
+            Console.WriteLine("Tracked extensions");
+
+            concatArguments = _binaryFiles.Concat(string.Empty, commandLength);
+            Console.WriteLine("Tracking files: " + string.Join("\n", concatArguments));
+            concatArguments.ForEach(TrackFiles);
+            Console.WriteLine("Tracked files");
         }
 
         private void TrackFiles(string arguments)
