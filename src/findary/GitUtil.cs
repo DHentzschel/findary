@@ -144,7 +144,7 @@ namespace Findary
             return false;
         }
 
-        private void TrackFiles(string arguments)
+        private void TrackFiles(string arguments, StatisticsDao statistics)
         {
             var output = GetNewProcessOutput(GetGitLfsFilename(), GetGitLfsArguments("track " + arguments, true));
             if (output == null)
@@ -153,8 +153,13 @@ namespace Findary
             }
             var lines = output.Split('\n');
             var penultimateLine = lines.Length > 1 ? lines[^2] : string.Empty;
-            if (output.StartsWith("Tracking \"") || penultimateLine.EndsWith("already supported"))
+
+            var trackingCount = output.Count("Tracking \"");
+            var alreadySupportedCount = output.Count("already supported");
+            if (trackingCount > 0 || alreadySupportedCount > 0)
             {
+                statistics.TrackedFiles += (uint)trackingCount;
+                statistics.AlreadySupported += (uint)alreadySupportedCount;
                 return;
             }
             _logger.Error("Could not track files. Process output is: " + output);
