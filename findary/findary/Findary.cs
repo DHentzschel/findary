@@ -155,16 +155,19 @@ namespace findary
                 PrintVerbosely("Could not read file " + filePath + ". " + e.Message);
                 return false;
             }
-            ++_filesProcessed;
 
             var bytes = new byte[1024];
             int bytesRead;
             var isFirstBlock = true;
             while ((bytesRead = fileStream.Read(bytes, 0, bytes.Length)) > 0)
             {
-                if (isFirstBlock && bytes.HasBom())
+                if (isFirstBlock)
                 {
-                    return false;
+                    ++_filesProcessed;
+                    if (bytes.HasBom())
+                    {
+                        return false;
+                    }
                 }
 
                 var zeroIndex = Array.FindIndex(bytes, p => p == '\0');
