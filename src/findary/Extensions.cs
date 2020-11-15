@@ -28,18 +28,18 @@ namespace Findary
             string GetAddendum(string item) => prefix != string.Empty ? '"' + prefix + item + "\" " : "\"" + item + "\" ";
 
             var maximumChars = MaximumChars - commandLength;
-            var entry = string.Empty;
+            var call = string.Empty;
             foreach (var str in input)
             {
                 var addendum = GetAddendum(str);
-                if (entry.Length + addendum.Length > maximumChars)
+                if (call.Length + addendum.Length > maximumChars)
                 {
-                    AddPreparedLine(entry);
-                    entry = string.Empty;
+                    AddPreparedLine(call);
+                    call = string.Empty;
                 }
-                entry += addendum;
+                call += addendum;
             }
-            AddPreparedLine(entry);
+            AddPreparedLine(call);
             return result;
         }
 
