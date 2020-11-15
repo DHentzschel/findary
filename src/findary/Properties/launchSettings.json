@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Findary": {
+      "commandName": "Project",
+      "commandLineArgs": "-e -t -r -v -m -d \"C:\\WINDOWS\""
+    }
+  }
+}
