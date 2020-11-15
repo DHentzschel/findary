@@ -221,12 +221,6 @@ namespace Findary
         }
 
         private bool ShouldBeAdded(string fileExtension, string file)
-        {
-            if (fileExtension == null)
-            {
-                return false;
-            }
-            return !_binaryFileExtensions.Contains(fileExtension) && IsFileBinary(file);
-        }
+            => fileExtension != null && !_binaryFileExtensions.Contains(fileExtension) && IsFileBinary(file);
     }
 }
