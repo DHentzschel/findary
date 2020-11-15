@@ -335,7 +335,7 @@ namespace Findary
 
         private void TrackFiles(string arguments)
         {
-            var output = GetNewProcessOutput(GetGitLfsFilename(), GetGitLfsArguments("track " + arguments, true));
+            var output = GetNewProcessOutput(GitUtil.GetGitLfsFilename(), GetGitLfsArguments("track " + arguments, true));
             if (output == null)
             {
                 return;
