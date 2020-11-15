@@ -11,13 +11,12 @@ namespace Findary
     {
         private readonly List<string> _binaryFileExtensions = new List<string>();
         private readonly List<string> _binaryFiles = new List<string>();
-
         private readonly StatisticsDao _statistics = new StatisticsDao();
-        private List<Glob> _ignoreGlobs;
-        private Options _options;
-        private Logger _logger;
-        private GitUtil _gitUtil;
 
+        private GitUtil _gitUtil;
+        private List<Glob> _ignoreGlobs;
+        private Logger _logger;
+        private Options _options;
 
         public void Run(Options options)
         {
@@ -37,7 +36,7 @@ namespace Findary
             _binaryFileExtensions.ForEach(Console.WriteLine);
 
             stopwatch.Restart();
-            TrackFiles();
+            _gitUtil.TrackFiles(_binaryFileExtensions, _binaryFiles);
             _logger.PrintTimeElapsed("tracking", stopwatch.ElapsedMilliseconds);
 
             _logger.PrintVerbosely(_statistics.Directories.ToString());
