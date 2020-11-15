@@ -243,6 +243,10 @@ namespace findary
             _directoriesTotal += directories.Length;
             foreach (var dir in directories)
             {
+                if (dir.EndsWith("\\.git") && dir.Replace(directory, string.Empty).Replace("\\.git", string.Empty) == string.Empty)
+                {
+                    continue;
+                }
                 ProcessDirectory(dir);
             }
         }
