@@ -12,7 +12,7 @@ namespace Findary
             var result = new List<string>();
 
             void AddPreparedLine(string line) => result.Add(line[..^1]);
-            string GetAddendum(string item) => prefix != string.Empty ? '"' + prefix + item + '"' : item;
+            string GetAddendum(string item) => prefix != string.Empty ? '"' + prefix + item + "\" " : item;
 
             var maximumChars = MaximumChars - commandLength;
             var entry = string.Empty;
