@@ -15,7 +15,7 @@ namespace Findary
             _options = options;
         }
 
-        public static string GetGitFilename() => "git";
+        public static string GetGitFilename() => "git" + GetPlatformSpecific(".exe", string.Empty);
 
         private static string GetPlatformSpecific(string windows, string other) => OperatingSystem.IsWindows() ? windows : other;
 
