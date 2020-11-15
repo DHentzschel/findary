@@ -23,7 +23,7 @@ namespace Findary
 
         public string GetGitLfsArguments(string args, bool executeInRepository = false)
         {
-            var result = "";
+            var result = string.Empty;
             if (executeInRepository)
             {
                 result = "-C " + _options.Directory + ' ';
