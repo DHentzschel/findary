@@ -291,11 +291,12 @@ namespace findary
                         var relativePath = Path.GetFullPath(file).Replace(Path.GetFullPath(_options.Directory), string.Empty);
                         while (relativePath.StartsWith('\\'))
                         {
-                            if (relativePath.Length > 1)
+                            if (relativePath.Length <= 1)
                             {
-                                relativePath = relativePath[1..].Replace('\\', '/');
-                                _binaryFiles.Add(relativePath);
+                                continue;
                             }
+                            relativePath = relativePath[1..].Replace('\\', '/');
+                            _binaryFiles.Add(relativePath);
                         }
                     }
                     continue;
