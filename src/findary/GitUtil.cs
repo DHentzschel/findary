@@ -89,11 +89,13 @@ namespace Findary
             }
             return output;
         }
+
         private bool InstallGitLfs()
         {
             var output = GetNewProcessOutput(GitUtil.GetGitLfsFilename(), GetGitLfsArguments("install", true));
             return output?.EndsWith("Git LFS initialized.") == true;
         }
+
         private bool IsGitAvailable()
         {
             const string arguments = "version";
@@ -111,6 +113,7 @@ namespace Findary
             _logger.PrintVerbosely("Could not detect a installed version of " + filename, true);
             return false;
         }
+
         private void TrackFiles(string arguments)
         {
             var output = GetNewProcessOutput(GitUtil.GetGitLfsFilename(), GetGitLfsArguments("track " + arguments, true));
