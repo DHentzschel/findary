@@ -54,21 +54,22 @@ namespace Findary
         private List<Glob> GetGlobs(string directory)
         {
             var result = new List<Glob>();
-            var filePath = Path.Combine(directory, ".gitignore");
+            var filename = ".gitignore";
+            var filePath = Path.Combine(directory, filename);
             if (!File.Exists(filePath))
             {
-                _logger.PrintVerbosely("Could not find file .gitignore");
+                _logger.PrintVerbosely("Could not find file " + filename);
                 return result;
             }
 
             string[] content;
             try
             {
-                content = File.ReadAllLines(Path.Combine(directory, ".gitignore"));
+                content = File.ReadAllLines(filePath);
             }
             catch (Exception e)
             {
-                _logger.PrintVerbosely("Could not read file .gitignore: " + e.Message, true);
+                _logger.PrintVerbosely("Could not read file " + filename + ": " + e.Message, true);
                 return result;
             }
 
