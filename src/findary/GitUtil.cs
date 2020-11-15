@@ -32,7 +32,7 @@ namespace Findary
 
         public void TrackFiles(List<string> fileExtensions, List<string> files)
         {
-            if (!_options.Track || !IsGitAvailable() || !InstallGitLfs())
+            if (!_options.Track || !IsGitAvailable() || !InitGitLfs())
             {
                 Console.Error.WriteLine("Could not track files");
                 return;
@@ -90,7 +90,7 @@ namespace Findary
             return output;
         }
 
-        private bool InstallGitLfs()
+        private bool InitGitLfs()
         {
             var output = GetNewProcessOutput(GetGitLfsFilename(), GetGitLfsArguments("install", true));
             return output?.EndsWith("Git LFS initialized.") == true;
