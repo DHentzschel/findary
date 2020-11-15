@@ -96,11 +96,14 @@ namespace Findary
             return output?.EndsWith("Git LFS initialized.") == true;
         }
 
+        private bool IsGitInstalled(string arguments) => IsInstalled(GetGitFilename(), arguments, "git version");
+
+        private bool IsGitLfsInstalled(string arguments) => IsInstalled(GetGitLfsFilename(), GetGitLfsArguments(arguments), "git-lfs/");
+
         private bool IsGitAvailable()
         {
             const string arguments = "version";
-            var gitInstalled = IsInstalled(GetGitFilename(), arguments, "git version");
-            return gitInstalled && IsInstalled(GetGitLfsFilename(), GetGitLfsArguments(arguments), "git-lfs/");
+            return IsGitInstalled(arguments) && IsGitLfsInstalled(arguments);
         }
 
         private bool IsInstalled(string filename, string arguments, string outputPrefix)
