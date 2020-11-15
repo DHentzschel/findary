@@ -159,7 +159,7 @@ namespace Findary
             {
                 if (isFirstBlock)
                 {
-                    ++_filesProcessed;
+                    ++_statistics.Files.Processed;
                     if (bytes.HasBom())
                     {
                         return false;
@@ -240,7 +240,7 @@ namespace Findary
                 return;
             }
 
-            _directoriesTotal += directories.Length;
+            _statistics.Directories.Total += directories.Length;
             foreach (var dir in directories)
             {
                 if (dir.EndsWith("\\.git") && dir.Replace(directory, string.Empty).Replace("\\.git", string.Empty) == string.Empty)
@@ -253,7 +253,7 @@ namespace Findary
 
         private void ProcessDirectory(string directory)
         {
-            ++_directoriesProcessed;
+            ++_statistics.Directories.Processed;
             ProcessDirectoriesRecursively(directory);
             ProcessFiles(directory);
         }
@@ -271,7 +271,7 @@ namespace Findary
                 return;
             }
 
-            _filesTotal += files.Length;
+            _statistics.Files.Total += files.Length;
             foreach (var file in files)
             {
                 var (formattedExtension, originalExtension) = GetFormattedFileExtension(file);
