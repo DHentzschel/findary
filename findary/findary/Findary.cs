@@ -30,7 +30,7 @@ namespace findary
             _ignoreGlobs = GetGlobs(options.Directory);
             PrintVerbosely("Found " + _ignoreGlobs.Count + " .gitignore globs");
             ProcessDirectory(options.Directory);
-            PrintVerbosely("Time elapsed reading: " + stopwatch.ElapsedMilliseconds + "ms");
+            PrintTimeElapsed("reading", stopwatch.ElapsedMilliseconds);
 
             _binaryFileExtensions.Sort();
             _binaryFiles.Sort();
@@ -38,7 +38,8 @@ namespace findary
 
             stopwatch.Restart();
             TrackFiles();
-            PrintVerbosely("Time elapsed tracking: " + stopwatch.ElapsedMilliseconds + "ms");
+            PrintTimeElapsed("tracking", stopwatch.ElapsedMilliseconds);
+
             PrintVerbosely("Directories: " + _directoriesProcessed + " processed, " + _directoriesTotal + " total");
             PrintVerbosely("Files: " + _filesProcessed + " processed, " + _filesTotal + " total");
             PrintVerbosely("Binaries: " + _binaryFileExtensions.Count + " types, " + _binaryFiles.Count + " files");
