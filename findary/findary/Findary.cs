@@ -327,6 +327,7 @@ namespace findary
         {
             if (!_options.Track || !IsGitAvailable() || !InstallGitLfs())
             {
+                Console.Error.WriteLine("Could not track files");
                 return;
             }
 
