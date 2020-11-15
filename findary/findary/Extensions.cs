@@ -5,13 +5,27 @@ namespace findary
 {
     public static class Extensions
     {
-        public static string Concat(this IEnumerable<string> input, string prefix)
+        private const int MaximumChars = 32767;
+
+        public static List<string> Concat(this IEnumerable<string> input, string prefix, int commandLength)
         {
-            var result = string.Empty;
+            var result = new List<string>();
+            void AddPreparedLine(string line) => result.Add(line[..^1]);
+            string GetAddendum(string item) => prefix != string.Empty ? '"' + prefix + item + '"' : item;
+
+            var maximumChars = MaximumChars - commandLength;
+            var entry = string.Empty;
             foreach (var str in input)
             {
-                result += '"' + prefix + str + "\" ";
+                var addendum = GetAddendum(str);
+                if (entry.Length + addendum.Length > maximumChars)
+                {
+                    AddPreparedLine(entry);
+                    entry = string.Empty;
+                }
+                entry += addendum;
             }
+            AddPreparedLine(entry);
             return result;
         }
 
