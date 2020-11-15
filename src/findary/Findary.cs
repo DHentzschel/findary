@@ -17,6 +17,7 @@ namespace Findary
         private List<Glob> _ignoreGlobs;
         private Logger _logger;
         private Options _options;
+        private bool _hasReachedGitDir;
 
         public void Run(Options options)
         {
@@ -83,7 +84,6 @@ namespace Findary
             return result;
         }
 
-
         private bool IsFileBinary(string filePath)
         {
             FileStream fileStream;
@@ -122,9 +122,7 @@ namespace Findary
             return false;
         }
 
-
         private bool IsIgnored(string file) => _options.ExcludeGitignore && _ignoreGlobs.Any(p => p.IsMatch(file));
-
 
         private void ProcessDirectoriesRecursively(string directory)
         {
@@ -152,8 +150,9 @@ namespace Findary
             _statistics.Directories.Total += directories.Length;
             foreach (var dir in directories)
             {
-                if (dir.EndsWith("\\.git") && dir.Replace(directory, string.Empty).Replace("\\.git", string.Empty) == string.Empty)
+                if (!_hasReachedGitDir && dir.EndsWith("\\.git"))
                 {
+                    _hasReachedGitDir = true;
                     continue;
                 }
                 ProcessDirectory(dir);
