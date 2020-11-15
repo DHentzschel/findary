@@ -51,7 +51,7 @@ namespace Findary
             _binaryFiles.ForEach(_logger.Info);
 
             stopwatch.Restart();
-            _gitUtil.TrackFiles(_binaryFileExtensions, _binaryFiles);
+            _gitUtil.TrackFiles(_binaryFileExtensions, _binaryFiles, _statistics);
 
             if (_options.MeasureTime)
             {
@@ -62,7 +62,10 @@ namespace Findary
             _logger.Debug(_statistics.Directories.ToString());
             _logger.Debug(_statistics.Files.ToString());
             _logger.Debug("Ignored files: " + _statistics.IgnoredFiles);
-            _logger.Debug("Binaries: " + _binaryFileExtensions.Count + " types, " + _binaryFiles.Count + " files");
+            var message = "Binaries: " + _binaryFileExtensions.Count + " types, " + _binaryFiles.Count
+                          + " files (" + _statistics.TrackedFiles + " tracked new, " + _statistics.AlreadySupported +
+                          " already supported)";
+            _logger.Debug(message);
         }
 
         private static (string, string) GetFormattedFileExtension(string file)
