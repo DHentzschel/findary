@@ -127,6 +127,10 @@ namespace Findary
             catch (Exception e)
             {
                 _logger.Warn("Could not read file " + filePath + ": " + e.Message);
+                if (e is UnauthorizedAccessException)
+                {
+                    ++_statistics.Files.AccessDenied;
+                }
                 return false;
             }
 
@@ -177,10 +181,14 @@ namespace Findary
             catch (Exception e)
             {
                 _logger.Warn("Could not enumerate directories in directory " + directory + ": " + e.Message);
+                if (e is UnauthorizedAccessException)
+                {
+                    ++_statistics.Directories.AccessDenied;
+                }
                 return;
             }
 
-            _statistics.Directories.Total += directories.Length;
+            _statistics.Directories.Total += (uint)directories.Length;
             foreach (var dir in directories)
             {
                 if (!_hasReachedGitDir && dir.EndsWith("\\.git"))
@@ -212,12 +220,13 @@ namespace Findary
                 return;
             }
 
-            _statistics.Files.Total += files.Length;
+            _statistics.Files.Total += (uint)files.Length;
             foreach (var file in files)
             {
                 var (formattedExtension, originalExtension) = GetFormattedFileExtension(file);
                 if (IsIgnored(originalExtension))
                 {
+                    ++_statistics.IgnoredFiles;
                     _logger.Debug("Found .gitignore match for file: " + file);
                     continue;
                 }
