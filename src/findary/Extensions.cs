@@ -10,6 +10,7 @@ namespace Findary
         public static List<string> Concat(this IEnumerable<string> input, string prefix, int commandLength)
         {
             var result = new List<string>();
+
             void AddPreparedLine(string line) => result.Add(line[..^1]);
             string GetAddendum(string item) => prefix != string.Empty ? '"' + prefix + item + '"' : item;
 
