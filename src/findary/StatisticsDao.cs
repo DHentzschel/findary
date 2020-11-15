@@ -8,7 +8,7 @@
 
         public class EntityStatistics
         {
-            private string _name;
+            private readonly string _name;
 
             public EntityStatistics(string name)
             {
