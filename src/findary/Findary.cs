@@ -12,11 +12,9 @@ namespace Findary
         private readonly List<string> _binaryFileExtensions = new List<string>();
         private readonly List<string> _binaryFiles = new List<string>();
 
+        private readonly StatisticsDao _statistics = new StatisticsDao();
         private List<Glob> _ignoreGlobs;
         private Options _options;
-
-        private readonly StatisticsDao _statistics = new StatisticsDao();
-
         public void Run(Options options)
         {
             _options = options;
@@ -193,16 +191,6 @@ namespace Findary
             return false;
         }
 
-        private void PrintVerbosely(string message, bool isError = false)
-        {
-            if (!_options.Verbose)
-            {
-                return;
-            }
-            var textWriter = isError ? Console.Error : Console.Out;
-            textWriter.WriteLine(message);
-        }
-
         private void PrintTimeElapsed(string task, long milliseconds)
         {
             if (!_options.MeasureTime)
@@ -213,6 +201,15 @@ namespace Findary
             Console.WriteLine("Time elapsed " + task + ": " + seconds + "s");
         }
 
+        private void PrintVerbosely(string message, bool isError = false)
+        {
+            if (!_options.Verbose)
+            {
+                return;
+            }
+            var textWriter = isError ? Console.Error : Console.Out;
+            textWriter.WriteLine(message);
+        }
         private void ProcessDirectoriesRecursively(string directory)
         {
             if (!_options.Recursive)
