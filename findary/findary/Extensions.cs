@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace findary
+namespace Findary
 {
     public static class Extensions
     {

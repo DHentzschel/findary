@@ -1,6 +1,6 @@
 ﻿using CommandLine;
 
-namespace findary
+namespace Findary
 {
     public class Options
     {
