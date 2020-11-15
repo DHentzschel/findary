@@ -10,6 +10,9 @@ namespace findary
         [Option('e', "excludeGitignore", HelpText = "Set whether .gitignore should be excluded. The directory should contain a file .gitignore")]
         public bool ExcludeGitignore { get; set; }
 
+        [Option('m', "measure", HelpText = "Set whether measured time should be printed")]
+        public bool MeasureTime { get; set; }
+
         [Option('r', "recursive", HelpText = "Set whether directory should be processed recursively")]
         public bool Recursive { get; set; }
 
