@@ -15,11 +15,7 @@ namespace Findary
         private List<Glob> _ignoreGlobs;
         private Options _options;
 
-        private int _directoriesProcessed;
-        private int _filesProcessed;
-
-        private int _directoriesTotal;
-        private int _filesTotal;
+        private readonly StatisticsDao _statistics = new StatisticsDao();
 
         public void Run(Options options)
         {
@@ -40,8 +36,8 @@ namespace Findary
             TrackFiles();
             PrintTimeElapsed("tracking", stopwatch.ElapsedMilliseconds);
 
-            PrintVerbosely("Directories: " + _directoriesProcessed + " processed, " + _directoriesTotal + " total");
-            PrintVerbosely("Files: " + _filesProcessed + " processed, " + _filesTotal + " total");
+            PrintVerbosely(_statistics.Directories.ToString());
+            PrintVerbosely(_statistics.Files.ToString());
             PrintVerbosely("Binaries: " + _binaryFileExtensions.Count + " types, " + _binaryFiles.Count + " files");
         }
 
