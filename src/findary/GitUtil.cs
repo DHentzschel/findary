@@ -1,18 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using NLog;
 
 namespace Findary
 {
     public class GitUtil
     {
-        private readonly Logger _logger;
+        private readonly ILogger _logger = LogManager.GetCurrentClassLogger();
         private readonly Options _options;
 
         public GitUtil(Options options)
         {
             _options = options;
-            _logger = new Logger(options);
         }
 
         public static string GetGitFilename() => "git";
@@ -35,25 +35,19 @@ namespace Findary
 
         public void TrackFiles(List<string> fileExtensions, List<string> files)
         {
-            if (!_options.Track || !IsGitAvailable() || !InitGitLfs())
+            var isGitAvailable = IsGitAvailable();
+            if (!_options.Track || !isGitAvailable || !InitGitLfs())
             {
-                Console.Error.WriteLine("Could not track files");
+                _logger.Error("Could not track files" + (!isGitAvailable ? ", git is not available" : string.Empty));
                 return;
             }
 
             var commandLength = "git lfs track -C ".Length + _options.Directory.Length;
-
             var concatArguments = fileExtensions.Concat("*.", commandLength);
             concatArguments.ForEach(TrackFiles);
 
-            var message = concatArguments.Count == 0 ? "No extensions to track" : "Tracked " + concatArguments.Count + " extensions";
-            _logger.PrintVerbosely(message);
-
             concatArguments = files.Concat(string.Empty, commandLength);
             concatArguments.ForEach(TrackFiles);
-
-            message = concatArguments.Count == 0 ? "No files to track" : "Tracked " + concatArguments.Count + " files";
-            _logger.PrintVerbosely(message);
         }
 
         private string GetNewProcessOutput(string filename, string arguments)
@@ -76,9 +70,10 @@ namespace Findary
             }
             catch (Exception e)
             {
-                _logger.PrintVerbosely("Could not start process " + filename + ". " + e.Message, true);
+                _logger.Error("Could not start process " + filename + ". " + e.Message);
                 return null;
             }
+
 
             string output = null;
             while (!process.StandardOutput.EndOfStream)
@@ -89,7 +84,7 @@ namespace Findary
                 }
                 catch (Exception e)
                 {
-                    _logger.PrintVerbosely("Could not redirect standard output. " + e.Message, true);
+                    _logger.Error("Could not redirect standard output. " + e.Message);
                 }
             }
             return output;
@@ -118,7 +113,7 @@ namespace Findary
             {
                 return true;
             }
-            _logger.PrintVerbosely("Could not detect a installed version of " + filename, true);
+            _logger.Warn("Could not detect a installed version of " + filename);
             return false;
         }
 
@@ -135,7 +130,7 @@ namespace Findary
             {
                 return;
             }
-            _logger.PrintVerbosely("Could not track files. Process output is: " + output, true);
+            _logger.Error("Could not track files. Process output is: " + output);
         }
     }
 }

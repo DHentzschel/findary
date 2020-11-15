@@ -1,4 +1,7 @@
 ﻿using DotNet.Globbing;
+using NLog;
+using NLog.Config;
+using NLog.Targets;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -15,40 +18,70 @@ namespace Findary
 
         private GitUtil _gitUtil;
         private List<Glob> _ignoreGlobs;
-        private Logger _logger;
         private Options _options;
         private bool _hasReachedGitDir;
+
+        private readonly ILogger _logger = LogManager.GetCurrentClassLogger();
 
         public void Run(Options options)
         {
             _options = options;
-            _logger = new Logger(options);
+
+            InitLogConfig();
             _gitUtil = new GitUtil(options);
 
             var stopwatch = new Stopwatch();
             stopwatch.Start();
             _ignoreGlobs = GetGlobs(options.Directory);
-            _logger.PrintVerbosely("Found " + _ignoreGlobs.Count + " .gitignore globs");
+            _logger.Debug("Found " + _ignoreGlobs.Count + " .gitignore globs");
             ProcessDirectory(options.Directory);
-            _logger.PrintTimeElapsed("reading", stopwatch.ElapsedMilliseconds);
 
+            if (_options.MeasureTime)
+            {
+                var seconds = stopwatch.ElapsedMilliseconds * 0.001F;
+                _logger.Info("Time spent reading:" + seconds + "s");
+            }
+
+            // Sort results
             _binaryFileExtensions.Sort();
             _binaryFiles.Sort();
-            _binaryFileExtensions.ForEach(Console.WriteLine);
+
+            // Print results
+            _binaryFileExtensions.ForEach(_logger.Info);
+            _binaryFiles.ForEach(_logger.Info);
 
             stopwatch.Restart();
             _gitUtil.TrackFiles(_binaryFileExtensions, _binaryFiles);
-            _logger.PrintTimeElapsed("tracking", stopwatch.ElapsedMilliseconds);
 
-            _logger.PrintVerbosely(_statistics.Directories.ToString());
-            _logger.PrintVerbosely(_statistics.Files.ToString());
-            _logger.PrintVerbosely("Binaries: " + _binaryFileExtensions.Count + " types, " + _binaryFiles.Count + " files");
+            if (_options.MeasureTime)
+            {
+                var seconds = stopwatch.ElapsedMilliseconds * 0.001F;
+                _logger.Info("Time spent tracking: " + seconds + "s");
+            }
+
+            _logger.Debug(_statistics.Directories.ToString());
+            _logger.Debug(_statistics.Files.ToString());
+            _logger.Debug("Ignored files: " + _statistics.IgnoredFiles);
+            _logger.Debug("Binaries: " + _binaryFileExtensions.Count + " types, " + _binaryFiles.Count + " files");
         }
 
         private static (string, string) GetFormattedFileExtension(string file)
         {
             var fileExtension = Path.GetExtension(file);
             return string.IsNullOrEmpty(fileExtension) ? (null, null) : (fileExtension.ToLower()[1..], fileExtension);
+        }
+
+        private void InitLogConfig()
+        {
+            var loggingConfiguration = new LoggingConfiguration();
+            var consoleTarget = new ConsoleTarget
+            {
+                Name = "console",
+                Layout = "${message}"
+            };
+            var logLevel = _options.Verbose ? LogLevel.Debug : LogLevel.Info;
+            loggingConfiguration.AddRule(logLevel, LogLevel.Fatal, consoleTarget);
+            LogManager.Configuration = loggingConfiguration;
         }
 
         private List<Glob> GetGlobs(string directory)
@@ -58,7 +91,7 @@ namespace Findary
             var filePath = Path.Combine(directory, filename);
             if (!File.Exists(filePath))
             {
-                _logger.PrintVerbosely("Could not find file " + filename);
+                _logger.Debug("Could not find file " + filename);
                 return result;
             }
 
@@ -69,7 +102,7 @@ namespace Findary
             }
             catch (Exception e)
             {
-                _logger.PrintVerbosely("Could not read file " + filename + ": " + e.Message, true);
+                _logger.Warn("Could not read file " + filename + ": " + e.Message);
                 return result;
             }
 
@@ -93,7 +126,7 @@ namespace Findary
             }
             catch (Exception e)
             {
-                _logger.PrintVerbosely("Could not read file " + filePath + ". " + e.Message);
+                _logger.Warn("Could not read file " + filePath + ": " + e.Message);
                 return false;
             }
 
@@ -132,7 +165,7 @@ namespace Findary
             }
             if (!Directory.Exists(directory))
             {
-                _logger.PrintVerbosely("Could not find directory: " + directory, true);
+                _logger.Warn("Could not find directory: " + directory);
                 return;
             }
 
@@ -143,7 +176,7 @@ namespace Findary
             }
             catch (Exception e)
             {
-                _logger.PrintVerbosely("Could not enumerate directories in directory " + directory + ". " + e.Message);
+                _logger.Warn("Could not enumerate directories in directory " + directory + ": " + e.Message);
                 return;
             }
 
@@ -175,7 +208,7 @@ namespace Findary
             }
             catch (Exception e)
             {
-                _logger.PrintVerbosely("Could not enumerate files in directory " + directory + ". " + e.Message);
+                _logger.Warn("Could not enumerate files in directory " + directory + ": " + e.Message);
                 return;
             }
 
@@ -185,7 +218,7 @@ namespace Findary
                 var (formattedExtension, originalExtension) = GetFormattedFileExtension(file);
                 if (IsIgnored(originalExtension))
                 {
-                    _logger.PrintVerbosely("Found .gitignore match for file: " + file);
+                    _logger.Debug("Found .gitignore match for file: " + file);
                     continue;
                 }
                 if (formattedExtension == null) // File has no extension
@@ -214,7 +247,7 @@ namespace Findary
                 _binaryFileExtensions.Add(formattedExtension);
 
                 var message = "Added file type " + formattedExtension.ToUpper() + " from file path: " + file;
-                _logger.PrintVerbosely(message);
+                _logger.Debug(message);
             }
         }
 
