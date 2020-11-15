@@ -33,7 +33,27 @@ namespace Findary
             return result;
         }
 
-        public void TrackFiles(List<string> fileExtensions, List<string> files)
+        private static string GetGitDirectory()
+        {
+            var pathVariable = Environment.GetEnvironmentVariable("path");
+            if (pathVariable == null)
+            {
+                return null;
+            }
+
+            var directories = pathVariable.Split(';');
+            foreach (var directory in directories)
+            {
+                var filePath = Path.Combine(directory, GetGitFilename());
+                if (File.Exists(filePath))
+                {
+                    return directory;
+                }
+            }
+            return null;
+        }
+
+        public void TrackFiles(List<string> fileExtensions, List<string> files, StatisticsDao statistics)
         {
             var isGitAvailable = IsGitAvailable();
             if (!_options.Track || !isGitAvailable || !InitGitLfs())
