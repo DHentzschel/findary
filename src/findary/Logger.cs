@@ -17,7 +17,7 @@ namespace Findary
             {
                 return;
             }
-            var seconds = (float)milliseconds / 1000;
+            var seconds = milliseconds * 0.001F;
             Console.WriteLine("Time elapsed " + task + ": " + seconds + "s");
         }
 
