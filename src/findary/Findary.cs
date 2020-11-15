@@ -15,16 +15,19 @@ namespace Findary
         private readonly StatisticsDao _statistics = new StatisticsDao();
         private List<Glob> _ignoreGlobs;
         private Options _options;
+        private Logger _logger;
+
         public void Run(Options options)
         {
             _options = options;
+            _logger = new Logger(options);
 
             var stopwatch = new Stopwatch();
             stopwatch.Start();
             _ignoreGlobs = GetGlobs(options.Directory);
-            PrintVerbosely("Found " + _ignoreGlobs.Count + " .gitignore globs");
+            _logger.PrintVerbosely("Found " + _ignoreGlobs.Count + " .gitignore globs");
             ProcessDirectory(options.Directory);
-            PrintTimeElapsed("reading", stopwatch.ElapsedMilliseconds);
+            _logger.PrintTimeElapsed("reading", stopwatch.ElapsedMilliseconds);
 
             _binaryFileExtensions.Sort();
             _binaryFiles.Sort();
@@ -32,11 +35,11 @@ namespace Findary
 
             stopwatch.Restart();
             TrackFiles();
-            PrintTimeElapsed("tracking", stopwatch.ElapsedMilliseconds);
+            _logger.PrintTimeElapsed("tracking", stopwatch.ElapsedMilliseconds);
 
-            PrintVerbosely(_statistics.Directories.ToString());
-            PrintVerbosely(_statistics.Files.ToString());
-            PrintVerbosely("Binaries: " + _binaryFileExtensions.Count + " types, " + _binaryFiles.Count + " files");
+            _logger.PrintVerbosely(_statistics.Directories.ToString());
+            _logger.PrintVerbosely(_statistics.Files.ToString());
+            _logger.PrintVerbosely("Binaries: " + _binaryFileExtensions.Count + " types, " + _binaryFiles.Count + " files");
         }
 
         private static (string, string) GetFormattedFileExtension(string file)
@@ -62,7 +65,7 @@ namespace Findary
             var filePath = Path.Combine(directory, ".gitignore");
             if (!File.Exists(filePath))
             {
-                PrintVerbosely("Could not find file .gitignore");
+                _logger.PrintVerbosely("Could not find file .gitignore");
                 return result;
             }
 
@@ -73,7 +76,7 @@ namespace Findary
             }
             catch (Exception e)
             {
-                PrintVerbosely("Could not read file .gitignore: " + e.Message, true);
+                _logger.PrintVerbosely("Could not read file .gitignore: " + e.Message, true);
                 return result;
             }
 
@@ -108,7 +111,7 @@ namespace Findary
             }
             catch (Exception e)
             {
-                PrintVerbosely("Could not start process " + filename + ". " + e.Message, true);
+                _logger.PrintVerbosely("Could not start process " + filename + ". " + e.Message, true);
                 return null;
             }
 
@@ -121,7 +124,7 @@ namespace Findary
                 }
                 catch (Exception e)
                 {
-                    PrintVerbosely("Could not redirect standard output. " + e.Message, true);
+                    _logger.PrintVerbosely("Could not redirect standard output. " + e.Message, true);
                 }
             }
             return output;
@@ -142,7 +145,7 @@ namespace Findary
             }
             catch (Exception e)
             {
-                PrintVerbosely("Could not read file " + filePath + ". " + e.Message);
+                _logger.PrintVerbosely("Could not read file " + filePath + ". " + e.Message);
                 return false;
             }
 
@@ -187,29 +190,10 @@ namespace Findary
             {
                 return true;
             }
-            PrintVerbosely("Could not detect a installed version of " + filename, true);
+            _logger.PrintVerbosely("Could not detect a installed version of " + filename, true);
             return false;
         }
 
-        private void PrintTimeElapsed(string task, long milliseconds)
-        {
-            if (!_options.MeasureTime)
-            {
-                return;
-            }
-            var seconds = (float)milliseconds / 1000;
-            Console.WriteLine("Time elapsed " + task + ": " + seconds + "s");
-        }
-
-        private void PrintVerbosely(string message, bool isError = false)
-        {
-            if (!_options.Verbose)
-            {
-                return;
-            }
-            var textWriter = isError ? Console.Error : Console.Out;
-            textWriter.WriteLine(message);
-        }
         private void ProcessDirectoriesRecursively(string directory)
         {
             if (!_options.Recursive)
@@ -218,7 +202,7 @@ namespace Findary
             }
             if (!Directory.Exists(directory))
             {
-                PrintVerbosely("Could not find directory: " + directory, true);
+                _logger.PrintVerbosely("Could not find directory: " + directory, true);
                 return;
             }
 
@@ -229,7 +213,7 @@ namespace Findary
             }
             catch (Exception e)
             {
-                PrintVerbosely("Could not enumerate directories in directory " + directory + ". " + e.Message);
+                _logger.PrintVerbosely("Could not enumerate directories in directory " + directory + ". " + e.Message);
                 return;
             }
 
@@ -260,7 +244,7 @@ namespace Findary
             }
             catch (Exception e)
             {
-                PrintVerbosely("Could not enumerate files in directory " + directory + ". " + e.Message);
+                _logger.PrintVerbosely("Could not enumerate files in directory " + directory + ". " + e.Message);
                 return;
             }
 
@@ -270,7 +254,7 @@ namespace Findary
                 var (formattedExtension, originalExtension) = GetFormattedFileExtension(file);
                 if (IsIgnored(originalExtension))
                 {
-                    PrintVerbosely("Found .gitignore match for file: " + file);
+                    _logger.PrintVerbosely("Found .gitignore match for file: " + file);
                     continue;
                 }
                 if (formattedExtension == null) // File has no extension
@@ -299,7 +283,7 @@ namespace Findary
                 _binaryFileExtensions.Add(formattedExtension);
 
                 var message = "Added file type " + formattedExtension.ToUpper() + " from file path: " + file;
-                PrintVerbosely(message);
+                _logger.PrintVerbosely(message);
             }
         }
 
@@ -346,7 +330,7 @@ namespace Findary
             {
                 return;
             }
-            PrintVerbosely("Could not track files. Process output is: " + output, true);
+            _logger.PrintVerbosely("Could not track files. Process output is: " + output, true);
         }
     }
 }
