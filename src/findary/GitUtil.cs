@@ -87,7 +87,13 @@ namespace Findary
                     _logger.Error("Could not redirect standard output. " + e.Message);
                 }
             }
-            return output;
+
+            if (process.ExitCode != 2)
+            {
+                return output;
+            }
+            _logger.Error("Access is probably denied. Exit code " + process.ExitCode + " (try again with admin privileges)");
+            return null;
         }
 
         private bool InitGitLfs()
