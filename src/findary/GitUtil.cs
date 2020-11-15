@@ -92,7 +92,7 @@ namespace Findary
 
         private bool InstallGitLfs()
         {
-            var output = GetNewProcessOutput(GitUtil.GetGitLfsFilename(), GetGitLfsArguments("install", true));
+            var output = GetNewProcessOutput(GetGitLfsFilename(), GetGitLfsArguments("install", true));
             return output?.EndsWith("Git LFS initialized.") == true;
         }
 
@@ -116,7 +116,7 @@ namespace Findary
 
         private void TrackFiles(string arguments)
         {
-            var output = GetNewProcessOutput(GitUtil.GetGitLfsFilename(), GetGitLfsArguments("track " + arguments, true));
+            var output = GetNewProcessOutput(GetGitLfsFilename(), GetGitLfsArguments("track " + arguments, true));
             if (output == null)
             {
                 return;
