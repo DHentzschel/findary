@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Findary
@@ -6,6 +7,18 @@ namespace Findary
     public static class Extensions
     {
         private const int MaximumChars = 32767;
+
+        public static int Count(this string input, string word)
+        {
+            var result = 0;
+            var searchString = 0;
+            while ((searchString = input.IndexOf(word, searchString, StringComparison.Ordinal)) != -1)
+            {
+                searchString += word.Length;
+                ++result;
+            }
+            return result;
+        }
 
         public static List<string> Concat(this IEnumerable<string> input, string prefix, int commandLength)
         {
