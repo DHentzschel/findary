@@ -47,10 +47,6 @@ namespace Findary
             return string.IsNullOrEmpty(fileExtension) ? (null, null) : (fileExtension.ToLower()[1..], fileExtension);
         }
 
-        private static string GetGitFilename() => "git";
-
-        private static string GetGitLfsFilename() => GetGitFilename() + (!OperatingSystem.IsWindows() ? "-lfs" : string.Empty);
-
         private string GetGitLfsArguments(string args, bool executeInRepository = false)
         {
             var result = "";
@@ -135,7 +131,7 @@ namespace Findary
 
         private bool InstallGitLfs()
         {
-            var output = GetNewProcessOutput(GetGitLfsFilename(), GetGitLfsArguments("install", true));
+            var output = GetNewProcessOutput(GitUtil.GetGitLfsFilename(), GetGitLfsArguments("install", true));
             return output?.EndsWith("Git LFS initialized.") == true;
         }
 
@@ -180,8 +176,8 @@ namespace Findary
         private bool IsGitAvailable()
         {
             const string arguments = "version";
-            var gitInstalled = IsInstalled(GetGitFilename(), arguments, "git version");
-            return gitInstalled && IsInstalled(GetGitLfsFilename(), GetGitLfsArguments(arguments), "git-lfs/");
+            var gitInstalled = IsInstalled(GitUtil.GetGitFilename(), arguments, "git version");
+            return gitInstalled && IsInstalled(GitUtil.GetGitLfsFilename(), GetGitLfsArguments(arguments), "git-lfs/");
         }
 
         private bool IsIgnored(string file) => _options.ExcludeGitignore && _ignoreGlobs.Any(p => p.IsMatch(file));
