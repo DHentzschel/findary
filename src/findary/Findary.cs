@@ -16,11 +16,14 @@ namespace Findary
         private List<Glob> _ignoreGlobs;
         private Options _options;
         private Logger _logger;
+        private GitUtil _gitUtil;
+
 
         public void Run(Options options)
         {
             _options = options;
             _logger = new Logger(options);
+            _gitUtil = new GitUtil(options);
 
             var stopwatch = new Stopwatch();
             stopwatch.Start();
@@ -46,17 +49,6 @@ namespace Findary
         {
             var fileExtension = Path.GetExtension(file);
             return string.IsNullOrEmpty(fileExtension) ? (null, null) : (fileExtension.ToLower()[1..], fileExtension);
-        }
-
-        private string GetGitLfsArguments(string args, bool executeInRepository = false)
-        {
-            var result = "";
-            if (executeInRepository)
-            {
-                result = "-C " + _options.Directory + ' ';
-            }
-            result += (OperatingSystem.IsWindows() ? "lfs " : string.Empty) + args;
-            return result;
         }
 
         private List<Glob> GetGlobs(string directory)
@@ -132,7 +124,7 @@ namespace Findary
 
         private bool InstallGitLfs()
         {
-            var output = GetNewProcessOutput(GitUtil.GetGitLfsFilename(), GetGitLfsArguments("install", true));
+            var output = GetNewProcessOutput(GitUtil.GetGitLfsFilename(), _gitUtil.GetGitLfsArguments("install", true));
             return output?.EndsWith("Git LFS initialized.") == true;
         }
 
@@ -178,7 +170,7 @@ namespace Findary
         {
             const string arguments = "version";
             var gitInstalled = IsInstalled(GitUtil.GetGitFilename(), arguments, "git version");
-            return gitInstalled && IsInstalled(GitUtil.GetGitLfsFilename(), GetGitLfsArguments(arguments), "git-lfs/");
+            return gitInstalled && IsInstalled(GitUtil.GetGitLfsFilename(), _gitUtil.GetGitLfsArguments(arguments), "git-lfs/");
         }
 
         private bool IsIgnored(string file) => _options.ExcludeGitignore && _ignoreGlobs.Any(p => p.IsMatch(file));
@@ -319,7 +311,7 @@ namespace Findary
 
         private void TrackFiles(string arguments)
         {
-            var output = GetNewProcessOutput(GitUtil.GetGitLfsFilename(), GetGitLfsArguments("track " + arguments, true));
+            var output = GetNewProcessOutput(GitUtil.GetGitLfsFilename(), _gitUtil.GetGitLfsArguments("track " + arguments, true));
             if (output == null)
             {
                 return;
