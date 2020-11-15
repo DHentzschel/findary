@@ -207,6 +207,16 @@ namespace findary
             textWriter.WriteLine(message);
         }
 
+        private void PrintTimeElapsed(string task, long milliseconds)
+        {
+            if (!_options.MeasureTime)
+            {
+                return;
+            }
+            var seconds = (float)milliseconds / 1000;
+            Console.WriteLine("Time elapsed " + task + ": " + seconds + "s");
+        }
+
         private void ProcessDirectoriesRecursively(string directory)
         {
             if (!_options.Recursive)
