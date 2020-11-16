@@ -14,15 +14,14 @@ namespace Findary
     {
         private readonly List<string> _binaryFileExtensions = new List<string>();
         private readonly List<string> _binaryFiles = new List<string>();
-        private readonly StatisticsDao _statistics = new StatisticsDao();
-
         private readonly GitUtil _gitUtil;
-        private List<Glob> _ignoreGlobs;
-        private readonly Options _options;
-        private bool _hasReachedGitDir;
-
         private readonly ILogger _logger = LogManager.GetCurrentClassLogger();
+        private readonly Options _options;
+        private readonly StatisticsDao _statistics = new StatisticsDao();
         private readonly Stopwatch _stopwatch = new Stopwatch();
+
+        private bool _hasReachedGitDir;
+        private List<Glob> _ignoreGlobs;
 
         public Findary(Options options)
         {
@@ -42,75 +41,15 @@ namespace Findary
             HandleResults();
             _stopwatch.Restart();
 
-
             _gitUtil.TrackFiles(_binaryFileExtensions, _binaryFiles, _statistics);
             PrintMeasuredTimeInSeconds("tracking");
             PrintStatistics();
-        }
-
-        private void PrintMeasuredTimeInSeconds(string task)
-        {
-            if (!_options.MeasureTime)
-            {
-                return;
-            }
-            var seconds = _stopwatch.ElapsedMilliseconds * 0.001F;
-            _logger.Info("Time spent " + task + ": " + seconds + 's');
-        }
-
-        private void PrepareIgnoreGlobs()
-        {
-            _ignoreGlobs = GetGlobs(_options.Directory);
-            _logger.Debug("Found " + _ignoreGlobs.Count + " .gitignore globs");
-        }
-
-        private void PrintStatistics()
-        {
-            var logLevel = _options.Stats ? LogLevel.Info : LogLevel.Debug;
-            _logger.Log(logLevel, _statistics.Directories.ToString());
-            _logger.Log(logLevel, _statistics.Files.ToString());
-            _logger.Log(logLevel, "Ignored files: " + _statistics.IgnoredFiles);
-            var message = "Binaries: " + _binaryFileExtensions.Count + " types, " + _binaryFiles.Count
-                          + " files (" + _statistics.TrackedFiles + " tracked new, " + _statistics.AlreadySupported +
-                          " already supported)";
-            _logger.Log(logLevel, message);
-        }
-
-        private void SortResults()
-        {
-            _binaryFileExtensions.Sort();
-            _binaryFiles.Sort();
-        }
-
-        private void PrintResults()
-        {
-            _binaryFileExtensions.ForEach(_logger.Info);
-            _binaryFiles.ForEach(_logger.Info);
-        }
-
-        private void HandleResults()
-        {
-            SortResults();
-            PrintResults();
         }
 
         private static (string, string) GetFormattedFileExtension(string file)
         {
             var fileExtension = Path.GetExtension(file);
             return string.IsNullOrEmpty(fileExtension) ? (null, null) : (fileExtension.ToLower()[1..], fileExtension);
-        }
-
-        private void InitLogConfig()
-        {
-            var loggingConfiguration = new LoggingConfiguration();
-            var consoleTarget = new ConsoleTarget
-            {
-                Name = "console",
-                Layout = "${message}"
-            };
-            var logLevel = _options.Verbose ? LogLevel.Debug : LogLevel.Info;
-            loggingConfiguration.AddRule(logLevel, LogLevel.Fatal, consoleTarget);
-            LogManager.Configuration = loggingConfiguration;
         }
 
         private List<Glob> GetGlobs(string directory)
@@ -149,6 +88,25 @@ namespace Findary
                 }
             }
             return result;
+        }
+
+        private void HandleResults()
+        {
+            SortResults();
+            PrintResults();
+        }
+
+        private void InitLogConfig()
+        {
+            var loggingConfiguration = new LoggingConfiguration();
+            var consoleTarget = new ConsoleTarget
+            {
+                Name = "console",
+                Layout = "${message}"
+            };
+            var logLevel = _options.Verbose ? LogLevel.Debug : LogLevel.Info;
+            loggingConfiguration.AddRule(logLevel, LogLevel.Fatal, consoleTarget);
+            LogManager.Configuration = loggingConfiguration;
         }
 
         private bool IsFileBinary(string filePath)
@@ -194,6 +152,39 @@ namespace Findary
         }
 
         private bool IsIgnored(string file) => _options.IgnoreFiles && _ignoreGlobs.Any(p => p.IsMatch(file));
+
+        private void PrepareIgnoreGlobs()
+        {
+            _ignoreGlobs = GetGlobs(_options.Directory);
+            _logger.Debug("Found " + _ignoreGlobs.Count + " .gitignore globs");
+        }
+
+        private void PrintMeasuredTimeInSeconds(string task)
+        {
+            if (!_options.MeasureTime)
+            {
+                return;
+            }
+            var seconds = _stopwatch.ElapsedMilliseconds * 0.001F;
+            _logger.Info("Time spent " + task + ": " + seconds + 's');
+        }
+        private void PrintResults()
+        {
+            _binaryFileExtensions.ForEach(_logger.Info);
+            _binaryFiles.ForEach(_logger.Info);
+        }
+
+        private void PrintStatistics()
+        {
+            var logLevel = _options.Stats ? LogLevel.Info : LogLevel.Debug;
+            _logger.Log(logLevel, _statistics.Directories.ToString());
+            _logger.Log(logLevel, _statistics.Files.ToString());
+            _logger.Log(logLevel, "Ignored files: " + _statistics.IgnoredFiles);
+            var message = "Binaries: " + _binaryFileExtensions.Count + " types, " + _binaryFiles.Count
+                          + " files (" + _statistics.TrackedFiles + " tracked new, " + _statistics.AlreadySupported +
+                          " already supported)";
+            _logger.Log(logLevel, message);
+        }
 
         private void ProcessDirectoriesRecursively(string directory)
         {
@@ -296,5 +287,11 @@ namespace Findary
 
         private bool ShouldBeAdded(string fileExtension, string file)
             => fileExtension != null && !_binaryFileExtensions.Contains(fileExtension) && IsFileBinary(file);
+
+        private void SortResults()
+        {
+            _binaryFileExtensions.Sort();
+            _binaryFiles.Sort();
+        }
     }
 }
