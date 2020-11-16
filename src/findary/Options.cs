@@ -16,6 +16,9 @@ namespace Findary
         [Option('r', "recursive", HelpText = "Set whether directory should be processed recursively")]
         public bool Recursive { get; set; }
 
+        [Option('s', "stats", HelpText = "Set whether statistics should be printed")]
+        public bool Stats { get; set; }
+
         [Option('t', "track", HelpText = "Set whether files should be tracked in LFS automatically")]
         public bool Track { get; set; }
 

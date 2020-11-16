@@ -59,13 +59,14 @@ namespace Findary
                 _logger.Info("Time spent tracking: " + seconds + "s");
             }
 
-            _logger.Debug(_statistics.Directories.ToString());
-            _logger.Debug(_statistics.Files.ToString());
-            _logger.Debug("Ignored files: " + _statistics.IgnoredFiles);
+            var logLevel = _options.Stats ? LogLevel.Info : LogLevel.Debug;
+            _logger.Log(logLevel, _statistics.Directories.ToString());
+            _logger.Log(logLevel, _statistics.Files.ToString());
+            _logger.Log(logLevel, "Ignored files: " + _statistics.IgnoredFiles);
             var message = "Binaries: " + _binaryFileExtensions.Count + " types, " + _binaryFiles.Count
                           + " files (" + _statistics.TrackedFiles + " tracked new, " + _statistics.AlreadySupported +
                           " already supported)";
-            _logger.Debug(message);
+            _logger.Log(logLevel, message);
         }
 
         private static (string, string) GetFormattedFileExtension(string file)
