@@ -7,8 +7,8 @@ namespace Findary
         [Option('d', "directory", HelpText = "Set directory to process", Required = true)]
         public string Directory { get; set; }
 
-        [Option('e', "excludeGitignore", HelpText = "Set whether .gitignore should be excluded. The directory should contain a file .gitignore")]
-        public bool ExcludeGitignore { get; set; }
+        [Option('i', "ignoreFiles", HelpText = "Set whether globs from .gitignore should be respected. The root's directory should contain a file .gitignore")]
+        public bool IgnoreFiles { get; set; }
 
         [Option('m', "measure", HelpText = "Set whether measured time should be printed")]
         public bool MeasureTime { get; set; }

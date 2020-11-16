@@ -90,6 +90,11 @@ namespace Findary
 
         private List<Glob> GetGlobs(string directory)
         {
+            if (_options.IgnoreFiles)
+            {
+                return new List<Glob>();
+            }
+
             var result = new List<Glob>();
             const string filename = ".gitignore";
             var filePath = Path.Combine(directory, filename);
@@ -163,7 +168,7 @@ namespace Findary
             return false;
         }
 
-        private bool IsIgnored(string file) => _options.ExcludeGitignore && _ignoreGlobs.Any(p => p.IsMatch(file));
+        private bool IsIgnored(string file) => _options.IgnoreFiles && _ignoreGlobs.Any(p => p.IsMatch(file));
 
         private void ProcessDirectoriesRecursively(string directory)
         {
