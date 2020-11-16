@@ -156,11 +156,10 @@ namespace Findary
             {
                 return;
             }
-            var lines = output.Split('\n');
-            var penultimateLine = lines.Length > 1 ? lines[^2] : string.Empty;
 
             var trackingCount = output.Count("Tracking \"");
             var alreadySupportedCount = output.Count("already supported");
+
             if (trackingCount > 0 || alreadySupportedCount > 0)
             {
                 statistics.TrackedFiles += (uint)trackingCount;
