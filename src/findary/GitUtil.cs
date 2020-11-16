@@ -146,6 +146,11 @@ namespace Findary
 
         private void TrackFiles(string arguments, StatisticsDao statistics)
         {
+            if (arguments.Length == 0)
+            {
+                return;
+            }
+
             var output = GetNewProcessOutput(GetGitLfsFilename(), GetGitLfsArguments("track " + arguments, true));
             if (output == null)
             {
