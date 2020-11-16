@@ -39,7 +39,7 @@ namespace Findary
             if (_options.MeasureTime)
             {
                 var seconds = stopwatch.ElapsedMilliseconds * 0.001F;
-                _logger.Info("Time spent reading:" + seconds + "s");
+                _logger.Info("Time spent reading: " + seconds + "s");
             }
 
             // Sort results
