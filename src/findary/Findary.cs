@@ -16,49 +16,56 @@ namespace Findary
         private readonly List<string> _binaryFiles = new List<string>();
         private readonly StatisticsDao _statistics = new StatisticsDao();
 
-        private GitUtil _gitUtil;
+        private readonly GitUtil _gitUtil;
         private List<Glob> _ignoreGlobs;
-        private Options _options;
+        private readonly Options _options;
         private bool _hasReachedGitDir;
 
         private readonly ILogger _logger = LogManager.GetCurrentClassLogger();
+        private readonly Stopwatch _stopwatch = new Stopwatch();
 
-        public void Run(Options options)
+        public Findary(Options options)
         {
             _options = options;
-
-            InitLogConfig();
             _gitUtil = new GitUtil(options);
+            InitLogConfig();
+        }
 
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
-            _ignoreGlobs = GetGlobs(options.Directory);
-            _logger.Debug("Found " + _ignoreGlobs.Count + " .gitignore globs");
-            ProcessDirectory(options.Directory);
+        public void Run()
+        {
+            _stopwatch.Start();
 
-            if (_options.MeasureTime)
-            {
-                var seconds = stopwatch.ElapsedMilliseconds * 0.001F;
-                _logger.Info("Time spent reading: " + seconds + "s");
-            }
+            PrepareIgnoreGlobs();
+            ProcessDirectory(_options.Directory);
 
-            // Sort results
-            _binaryFileExtensions.Sort();
-            _binaryFiles.Sort();
+            PrintMeasuredTimeInSeconds("reading");
+            HandleResults();
+            _stopwatch.Restart();
 
-            // Print results
-            _binaryFileExtensions.ForEach(_logger.Info);
-            _binaryFiles.ForEach(_logger.Info);
 
-            stopwatch.Restart();
             _gitUtil.TrackFiles(_binaryFileExtensions, _binaryFiles, _statistics);
+            PrintMeasuredTimeInSeconds("tracking");
+            PrintStatistics();
+        }
 
-            if (_options.MeasureTime)
+        private void PrintMeasuredTimeInSeconds(string task)
+        {
+            if (!_options.MeasureTime)
             {
-                var seconds = stopwatch.ElapsedMilliseconds * 0.001F;
-                _logger.Info("Time spent tracking: " + seconds + "s");
+                return;
             }
+            var seconds = _stopwatch.ElapsedMilliseconds * 0.001F;
+            _logger.Info("Time spent " + task + ": " + seconds + 's');
+        }
 
+        private void PrepareIgnoreGlobs()
+        {
+            _ignoreGlobs = GetGlobs(_options.Directory);
+            _logger.Debug("Found " + _ignoreGlobs.Count + " .gitignore globs");
+        }
+
+        private void PrintStatistics()
+        {
             var logLevel = _options.Stats ? LogLevel.Info : LogLevel.Debug;
             _logger.Log(logLevel, _statistics.Directories.ToString());
             _logger.Log(logLevel, _statistics.Files.ToString());
@@ -67,6 +74,24 @@ namespace Findary
                           + " files (" + _statistics.TrackedFiles + " tracked new, " + _statistics.AlreadySupported +
                           " already supported)";
             _logger.Log(logLevel, message);
+        }
+
+        private void SortResults()
+        {
+            _binaryFileExtensions.Sort();
+            _binaryFiles.Sort();
+        }
+
+        private void PrintResults()
+        {
+            _binaryFileExtensions.ForEach(_logger.Info);
+            _binaryFiles.ForEach(_logger.Info);
+        }
+
+        private void HandleResults()
+        {
+            SortResults();
+            PrintResults();
         }
 
         private static (string, string) GetFormattedFileExtension(string file)
