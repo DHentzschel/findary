@@ -54,7 +54,7 @@ namespace Findary
 
         private List<Glob> GetGlobs(string directory)
         {
-            if (_options.IgnoreFiles)
+            if (!_options.IgnoreFiles)
             {
                 return new List<Glob>();
             }
