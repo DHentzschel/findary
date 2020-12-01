@@ -145,6 +145,21 @@ namespace Findary
         }
 
 
+        public List<Glob> GetGitIgnoreGlobs()
+        {
+            var result = new List<Glob>();
+            foreach (var line in GetGitIgnoreLines())
+            {
+                var lineTrimmed = line.TrimStart();
+                if (string.IsNullOrEmpty(lineTrimmed) || lineTrimmed.IsGlobComment())
+                {
+                    continue;
+                }
+                result.Add(Glob.Parse(lineTrimmed));
+            }
+            return result;
+        }
+
         public List<Glob> GetGitAttributesGlobs()
         {
             var result = new List<Glob>();
