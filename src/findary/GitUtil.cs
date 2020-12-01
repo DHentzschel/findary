@@ -144,6 +144,8 @@ namespace Findary
             return false;
         }
 
+        private List<string> GetGitIgnoreLines()
+            => !_options.IgnoreFiles ? new List<string>() : GetFileLines(_options.Directory, ".gitignore");
 
         private List<string> GetGitAttributesLines()
             => !_options.Track ? new List<string>() : GetFileLines(_options.Directory, ".gitattributes");
