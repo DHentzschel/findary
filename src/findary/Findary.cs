@@ -234,6 +234,16 @@ namespace Findary
             ProcessFiles(directory);
         }
 
+        private string GetRelativePath(string filePath)
+        {
+            var result = Path.GetFullPath(filePath).Replace(Path.GetFullPath(_options.Directory), string.Empty);
+            if (result.StartsWith('/') || result.StartsWith('\\'))
+            {
+                result = result.Substring(1);
+            }
+            return result;
+        }
+
         private void ProcessFiles(string directory)
         {
             string[] files;
