@@ -20,10 +20,9 @@ namespace Findary
         private readonly StatisticsDao _statistics = new StatisticsDao();
         private readonly Stopwatch _stopwatch = new Stopwatch();
 
+        private List<Glob> _attributesGlobs;
         private bool _hasReachedGitDir;
         private List<Glob> _ignoreGlobs;
-        private List<Glob> _attributesGlobs;
-
         public Findary(Options options)
         {
             _options = options;
@@ -54,6 +53,16 @@ namespace Findary
             return string.IsNullOrEmpty(fileExtension) ? (null, null) : (fileExtension.ToLower()[1..], fileExtension);
         }
 
+        private string GetRelativePath(string filePath)
+        {
+            var result = Path.GetFullPath(filePath).Replace(Path.GetFullPath(_options.Directory), string.Empty);
+            if (result.StartsWith('/') || result.StartsWith('\\'))
+            {
+                result = result.Substring(1);
+            }
+            return result;
+        }
+
         private void HandleResults()
         {
             SortResults();
@@ -72,6 +81,8 @@ namespace Findary
             loggingConfiguration.AddRule(logLevel, LogLevel.Fatal, consoleTarget);
             LogManager.Configuration = loggingConfiguration;
         }
+
+        private bool IsAlreadySupported(string file) => _options.Track && _attributesGlobs.Any(p => p.IsMatch(file));
 
         private bool IsFileBinary(string filePath)
         {
@@ -116,17 +127,12 @@ namespace Findary
         }
 
         private bool IsIgnored(string file) => _options.IgnoreFiles && _ignoreGlobs.Any(p => p.IsMatch(file));
-
-        private bool IsAlreadySupported(string file) => _options.Track && _attributesGlobs.Any(p => p.IsMatch(file));
-
-        private void PrepareIgnoreGlobs()
+        private void LogGlobCount(int count, string filename)
         {
-            if (!_options.IgnoreFiles)
+            if (count > 0)
             {
-                return;
+                _logger.Debug("Found " + count + ' ' + filename + " globs");
             }
-            _ignoreGlobs = _gitUtil.GetGitIgnoreGlobs();
-            LogGlobCount(_ignoreGlobs.Count, ".gitignore");
         }
 
         private void PrepareAttributesGlobs()
@@ -139,12 +145,14 @@ namespace Findary
             LogGlobCount(_attributesGlobs.Count, ".gitattibutes");
         }
 
-        private void LogGlobCount(int count, string filename)
+        private void PrepareIgnoreGlobs()
         {
-            if (count > 0)
+            if (!_options.IgnoreFiles)
             {
-                _logger.Debug("Found " + count + ' ' + filename + " globs");
+                return;
             }
+            _ignoreGlobs = _gitUtil.GetGitIgnoreGlobs();
+            LogGlobCount(_ignoreGlobs.Count, ".gitignore");
         }
 
         private void PrintMeasuredTimeInSeconds(string task)
@@ -156,6 +164,7 @@ namespace Findary
             var seconds = _stopwatch.ElapsedMilliseconds * 0.001F;
             _logger.Info("Time spent " + task + ": " + seconds + 's');
         }
+
         private void PrintResults()
         {
             _binaryFileExtensions.ForEach(_logger.Info);
@@ -218,16 +227,6 @@ namespace Findary
             ++_statistics.Directories.Processed;
             ProcessDirectoriesRecursively(directory);
             ProcessFiles(directory);
-        }
-
-        private string GetRelativePath(string filePath)
-        {
-            var result = Path.GetFullPath(filePath).Replace(Path.GetFullPath(_options.Directory), string.Empty);
-            if (result.StartsWith('/') || result.StartsWith('\\'))
-            {
-                result = result.Substring(1);
-            }
-            return result;
         }
 
         private void ProcessFiles(string directory)

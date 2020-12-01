@@ -8,8 +8,6 @@ namespace Findary
     {
         private const int MaximumChars = 32767;
 
-        public static bool IsGlobComment(this string input) => input.StartsWith('#');
-
         public static List<string> Concat(this IEnumerable<string> input, string prefix, int commandLength)
         {
             var result = new List<string>();
@@ -47,6 +45,7 @@ namespace Findary
             }
             return result;
         }
+
         public static bool HasBom(this IReadOnlyList<byte> input)
         {
             return input.IsUtf8()
@@ -57,6 +56,7 @@ namespace Findary
                    || input.IsBocu1() || input.IsGb18030();
         }
 
+        public static bool IsGlobComment(this string input) => input.StartsWith('#');
         private static bool HasBom(this IReadOnlyList<byte> input, IReadOnlyCollection<byte> bom, IEnumerable<byte> lastByte = null)
         {
             if (input.Count < bom.Count)

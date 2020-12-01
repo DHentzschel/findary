@@ -20,9 +20,42 @@ namespace Findary
 
         public static string GetGitFilename() => "git" + GetPlatformSpecific(".exe", string.Empty);
 
-        private static string GetPlatformSpecific(string windows, string other) => OperatingSystem.IsWindows() ? windows : other;
-
         public static string GetGitLfsFilename() => GetGitFilename() + GetPlatformSpecific(string.Empty, "-lfs");
+
+        public List<Glob> GetGitAttributesGlobs()
+        {
+            var result = new List<Glob>();
+            foreach (var line in GetGitAttributesLines())
+            {
+                var lineTrimmed = line.TrimStart();
+                if (string.IsNullOrEmpty(lineTrimmed) || lineTrimmed.IsGlobComment())
+                {
+                    continue;
+                }
+
+                var parsedGlob = ParseGlob(lineTrimmed);
+                if (parsedGlob != null)
+                {
+                    result.Add(parsedGlob);
+                }
+            }
+            return result;
+        }
+
+        public List<Glob> GetGitIgnoreGlobs()
+        {
+            var result = new List<Glob>();
+            foreach (var line in GetGitIgnoreLines())
+            {
+                var lineTrimmed = line.TrimStart();
+                if (string.IsNullOrEmpty(lineTrimmed) || lineTrimmed.IsGlobComment())
+                {
+                    continue;
+                }
+                result.Add(Glob.Parse(lineTrimmed));
+            }
+            return result;
+        }
 
         public string GetGitLfsArguments(string args, bool executeInRepository = false)
         {
@@ -34,26 +67,6 @@ namespace Findary
 
             result += GetPlatformSpecific("lfs ", string.Empty) + args;
             return result;
-        }
-
-        private static string GetGitDirectory()
-        {
-            var pathVariable = Environment.GetEnvironmentVariable("path");
-            if (pathVariable == null)
-            {
-                return null;
-            }
-
-            var directories = pathVariable.Split(';');
-            foreach (var directory in directories)
-            {
-                var filePath = Path.Combine(directory, GetGitFilename());
-                if (File.Exists(filePath))
-                {
-                    return directory;
-                }
-            }
-            return null;
         }
 
         public void TrackFiles(List<string> fileExtensions, List<string> files, StatisticsDao statistics)
@@ -82,6 +95,56 @@ namespace Findary
                 concatArguments.ForEach(p => TrackFiles(p, statistics));
             }
         }
+
+        private static string GetGitDirectory()
+        {
+            var pathVariable = Environment.GetEnvironmentVariable("path");
+            if (pathVariable == null)
+            {
+                return null;
+            }
+
+            var directories = pathVariable.Split(';');
+            foreach (var directory in directories)
+            {
+                var filePath = Path.Combine(directory, GetGitFilename());
+                if (File.Exists(filePath))
+                {
+                    return directory;
+                }
+            }
+            return null;
+        }
+
+        private static string GetPlatformSpecific(string windows, string other) => OperatingSystem.IsWindows() ? windows : other;
+        private List<string> GetFileLines(string directory, string filename)
+        {
+            var result = new List<string>();
+            var filePath = Path.Combine(directory, filename);
+            if (!File.Exists(filePath))
+            {
+                _logger.Debug("Could not find file " + filename);
+                return result;
+            }
+
+            try
+            {
+                result = File.ReadAllLines(filePath).ToList();
+            }
+            catch (Exception e)
+            {
+                _logger.Warn("Could not read file " + filename + ": " + e.Message);
+                return result;
+            }
+
+            return result;
+        }
+
+        private List<string> GetGitAttributesLines()
+            => !_options.Track ? new List<string>() : GetFileLines(_options.Directory, ".gitattributes");
+
+        private List<string> GetGitIgnoreLines()
+            => !_options.IgnoreFiles ? new List<string>() : GetFileLines(_options.Directory, ".gitignore");
 
         private string GetNewProcessOutput(string filename, string arguments)
         {
@@ -135,16 +198,15 @@ namespace Findary
             return output?.EndsWith("Git LFS initialized.") == true;
         }
 
-        private bool IsGitInstalled(string arguments) => IsInstalled(GetGitFilename(), arguments, "git version");
-
-        private bool IsGitLfsInstalled(string arguments) => IsInstalled(GetGitLfsFilename(), GetGitLfsArguments(arguments), "git-lfs/");
-
         private bool IsGitAvailable()
         {
             const string arguments = "version";
             return IsGitInstalled(arguments) && IsGitLfsInstalled(arguments);
         }
 
+        private bool IsGitInstalled(string arguments) => IsInstalled(GetGitFilename(), arguments, "git version");
+
+        private bool IsGitLfsInstalled(string arguments) => IsInstalled(GetGitLfsFilename(), GetGitLfsArguments(arguments), "git-lfs/");
         private bool IsInstalled(string filename, string arguments, string outputPrefix)
         {
             var output = GetNewProcessOutput(filename, arguments);
@@ -155,71 +217,6 @@ namespace Findary
             _logger.Warn("Could not detect a installed version of " + filename);
             return false;
         }
-
-        private List<string> GetGitIgnoreLines()
-            => !_options.IgnoreFiles ? new List<string>() : GetFileLines(_options.Directory, ".gitignore");
-
-        private List<string> GetGitAttributesLines()
-            => !_options.Track ? new List<string>() : GetFileLines(_options.Directory, ".gitattributes");
-
-        private List<string> GetFileLines(string directory, string filename)
-        {
-            var result = new List<string>();
-            var filePath = Path.Combine(directory, filename);
-            if (!File.Exists(filePath))
-            {
-                _logger.Debug("Could not find file " + filename);
-                return result;
-            }
-
-            try
-            {
-                result = File.ReadAllLines(filePath).ToList();
-            }
-            catch (Exception e)
-            {
-                _logger.Warn("Could not read file " + filename + ": " + e.Message);
-                return result;
-            }
-
-            return result;
-        }
-
-        public List<Glob> GetGitIgnoreGlobs()
-        {
-            var result = new List<Glob>();
-            foreach (var line in GetGitIgnoreLines())
-            {
-                var lineTrimmed = line.TrimStart();
-                if (string.IsNullOrEmpty(lineTrimmed) || lineTrimmed.IsGlobComment())
-                {
-                    continue;
-                }
-                result.Add(Glob.Parse(lineTrimmed));
-            }
-            return result;
-        }
-
-        public List<Glob> GetGitAttributesGlobs()
-        {
-            var result = new List<Glob>();
-            foreach (var line in GetGitAttributesLines())
-            {
-                var lineTrimmed = line.TrimStart();
-                if (string.IsNullOrEmpty(lineTrimmed) || lineTrimmed.IsGlobComment())
-                {
-                    continue;
-                }
-
-                var parsedGlob = ParseGlob(lineTrimmed);
-                if (parsedGlob != null)
-                {
-                    result.Add(parsedGlob);
-                }
-            }
-            return result;
-        }
-
         private Glob ParseGlob(string line)
         {
             var lineSplit = line.Split(' ');
