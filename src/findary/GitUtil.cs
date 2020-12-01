@@ -145,6 +145,9 @@ namespace Findary
         }
 
 
+        private List<string> GetGitAttributesLines()
+            => !_options.Track ? new List<string>() : GetFileLines(_options.Directory, ".gitattributes");
+
         private List<string> GetFileLines(string directory, string filename)
         {
             var result = new List<string>();
