@@ -52,44 +52,6 @@ namespace Findary
             return string.IsNullOrEmpty(fileExtension) ? (null, null) : (fileExtension.ToLower()[1..], fileExtension);
         }
 
-        private List<Glob> GetGlobs(string directory)
-        {
-            if (!_options.IgnoreFiles)
-            {
-                return new List<Glob>();
-            }
-
-            var result = new List<Glob>();
-            const string filename = ".gitignore";
-            var filePath = Path.Combine(directory, filename);
-            if (!File.Exists(filePath))
-            {
-                _logger.Debug("Could not find file " + filename);
-                return result;
-            }
-
-            string[] content;
-            try
-            {
-                content = File.ReadAllLines(filePath);
-            }
-            catch (Exception e)
-            {
-                _logger.Warn("Could not read file " + filename + ": " + e.Message);
-                return result;
-            }
-
-            foreach (var line in content)
-            {
-                var lineTrimmed = line.TrimStart();
-                if (!lineTrimmed.StartsWith('#') && !string.IsNullOrEmpty(lineTrimmed))
-                {
-                    result.Add(Glob.Parse(lineTrimmed));
-                }
-            }
-            return result;
-        }
-
         private void HandleResults()
         {
             SortResults();
