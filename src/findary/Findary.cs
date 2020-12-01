@@ -261,7 +261,8 @@ namespace Findary
             foreach (var file in files)
             {
                 var (formattedExtension, originalExtension) = GetFormattedFileExtension(file);
-                if (IsIgnored(originalExtension))
+                var relativePath = GetRelativePath(file);
+                if (IsIgnored(relativePath))
                 {
                     ++_statistics.IgnoredFiles;
                     _logger.Debug("Found .gitignore match for file: " + file);
@@ -271,16 +272,9 @@ namespace Findary
                 {
                     if (IsFileBinary(file))
                     {
-                        var relativePath = Path.GetFullPath(file).Replace(Path.GetFullPath(_options.Directory), string.Empty);
-                        while (relativePath.StartsWith('\\'))
-                        {
-                            if (relativePath.Length <= 1)
-                            {
-                                continue;
-                            }
-                            relativePath = relativePath[1..].Replace('\\', '/');
-                            _binaryFiles.Add(relativePath);
-                        }
+                        relativePath = relativePath.Replace('\\', '/');
+                        relativePath = relativePath.StartsWith('/') ? relativePath[1..] : relativePath;
+                        _binaryFiles.Add(relativePath);
                     }
                     continue;
                 }
