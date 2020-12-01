@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using DotNet.Globbing;
 
 namespace Findary
 {
@@ -57,18 +59,28 @@ namespace Findary
         public void TrackFiles(List<string> fileExtensions, List<string> files, StatisticsDao statistics)
         {
             var isGitAvailable = IsGitAvailable();
+
             if (!_options.Track || !isGitAvailable || !InitGitLfs())
             {
-                _logger.Error("Could not track files" + (!isGitAvailable ? ", git is not available" : string.Empty));
+                if (_options.Track)
+                {
+                    var addendum = !isGitAvailable ? ", git is not available" : "lfs could not be initialized";
+                    _logger.Error("Could not track files" + addendum);
+                }
                 return;
             }
 
             var command = Path.Combine(GetGitDirectory(), GetGitFilename()) + " lfs track -C " + Path.GetFullPath(_options.Directory);
-            var concatArguments = fileExtensions.Concat("*.", command.Length);
-            concatArguments.ForEach(p => TrackFiles(p, statistics));
-
-            concatArguments = files.Concat(string.Empty, command.Length);
-            concatArguments.ForEach(p => TrackFiles(p, statistics));
+            if (fileExtensions.Count == 0)
+            {
+                var concatArguments = fileExtensions.Concat("*.", command.Length);
+                concatArguments.ForEach(p => TrackFiles(p, statistics));
+            }
+            if (files.Count > 0)
+            {
+                var concatArguments = files.Concat(string.Empty, command.Length);
+                concatArguments.ForEach(p => TrackFiles(p, statistics));
+            }
         }
 
         private string GetNewProcessOutput(string filename, string arguments)
@@ -142,6 +154,91 @@ namespace Findary
             }
             _logger.Warn("Could not detect a installed version of " + filename);
             return false;
+        }
+
+        private List<string> GetGitIgnoreLines()
+            => !_options.IgnoreFiles ? new List<string>() : GetFileLines(_options.Directory, ".gitignore");
+
+        private List<string> GetGitAttributesLines()
+            => !_options.Track ? new List<string>() : GetFileLines(_options.Directory, ".gitattributes");
+
+        private List<string> GetFileLines(string directory, string filename)
+        {
+            var result = new List<string>();
+            var filePath = Path.Combine(directory, filename);
+            if (!File.Exists(filePath))
+            {
+                _logger.Debug("Could not find file " + filename);
+                return result;
+            }
+
+            try
+            {
+                result = File.ReadAllLines(filePath).ToList();
+            }
+            catch (Exception e)
+            {
+                _logger.Warn("Could not read file " + filename + ": " + e.Message);
+                return result;
+            }
+
+            return result;
+        }
+
+        public List<Glob> GetGitIgnoreGlobs()
+        {
+            var result = new List<Glob>();
+            foreach (var line in GetGitIgnoreLines())
+            {
+                var lineTrimmed = line.TrimStart();
+                if (string.IsNullOrEmpty(lineTrimmed) || lineTrimmed.IsGlobComment())
+                {
+                    continue;
+                }
+                result.Add(Glob.Parse(lineTrimmed));
+            }
+            return result;
+        }
+
+        public List<Glob> GetGitAttributesGlobs()
+        {
+            var result = new List<Glob>();
+            foreach (var line in GetGitAttributesLines())
+            {
+                var lineTrimmed = line.TrimStart();
+                if (string.IsNullOrEmpty(lineTrimmed) || lineTrimmed.IsGlobComment())
+                {
+                    continue;
+                }
+
+                var parsedGlob = ParseGlob(lineTrimmed);
+                if (parsedGlob != null)
+                {
+                    result.Add(parsedGlob);
+                }
+            }
+            return result;
+        }
+
+        private Glob ParseGlob(string line)
+        {
+            var lineSplit = line.Split(' ');
+            if (lineSplit.Length < 5)
+            {
+                return null;
+            }
+
+            var resultString = string.Empty;
+            for (var i = 0; i < lineSplit.Length - 4; ++i)
+            {
+                resultString += lineSplit[i] + (i < lineSplit.Length - 5 ? " " : string.Empty);
+            }
+
+            if (resultString.StartsWith("*."))
+            {
+                resultString = "**/" + resultString;
+            }
+            return Glob.Parse(resultString);
         }
 
         private void TrackFiles(string arguments, StatisticsDao statistics)

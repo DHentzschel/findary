@@ -8,6 +8,8 @@ namespace Findary
     {
         private const int MaximumChars = 32767;
 
+        public static bool IsGlobComment(this string input) => input.StartsWith('#');
+
         public static List<string> Concat(this IEnumerable<string> input, string prefix, int commandLength)
         {
             var result = new List<string>();
@@ -27,7 +29,10 @@ namespace Findary
                 }
                 call += addendum;
             }
-            AddPreparedLine(call);
+            if (!string.IsNullOrEmpty(call))
+            {
+                AddPreparedLine(call);
+            }
             return result;
         }
 

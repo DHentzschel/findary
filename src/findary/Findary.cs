@@ -22,6 +22,7 @@ namespace Findary
 
         private bool _hasReachedGitDir;
         private List<Glob> _ignoreGlobs;
+        private List<Glob> _attributesGlobs;
 
         public Findary(Options options)
         {
@@ -35,6 +36,7 @@ namespace Findary
             _stopwatch.Start();
 
             PrepareIgnoreGlobs();
+            PrepareAttributesGlobs();
             ProcessDirectory(_options.Directory);
 
             PrintMeasuredTimeInSeconds("reading");
@@ -50,44 +52,6 @@ namespace Findary
         {
             var fileExtension = Path.GetExtension(file);
             return string.IsNullOrEmpty(fileExtension) ? (null, null) : (fileExtension.ToLower()[1..], fileExtension);
-        }
-
-        private List<Glob> GetGlobs(string directory)
-        {
-            if (!_options.IgnoreFiles)
-            {
-                return new List<Glob>();
-            }
-
-            var result = new List<Glob>();
-            const string filename = ".gitignore";
-            var filePath = Path.Combine(directory, filename);
-            if (!File.Exists(filePath))
-            {
-                _logger.Debug("Could not find file " + filename);
-                return result;
-            }
-
-            string[] content;
-            try
-            {
-                content = File.ReadAllLines(filePath);
-            }
-            catch (Exception e)
-            {
-                _logger.Warn("Could not read file " + filename + ": " + e.Message);
-                return result;
-            }
-
-            foreach (var line in content)
-            {
-                var lineTrimmed = line.TrimStart();
-                if (!lineTrimmed.StartsWith('#') && !string.IsNullOrEmpty(lineTrimmed))
-                {
-                    result.Add(Glob.Parse(lineTrimmed));
-                }
-            }
-            return result;
         }
 
         private void HandleResults()
@@ -153,10 +117,34 @@ namespace Findary
 
         private bool IsIgnored(string file) => _options.IgnoreFiles && _ignoreGlobs.Any(p => p.IsMatch(file));
 
+        private bool IsAlreadySupported(string file) => _options.Track && _attributesGlobs.Any(p => p.IsMatch(file));
+
         private void PrepareIgnoreGlobs()
         {
-            _ignoreGlobs = GetGlobs(_options.Directory);
-            _logger.Debug("Found " + _ignoreGlobs.Count + " .gitignore globs");
+            if (!_options.IgnoreFiles)
+            {
+                return;
+            }
+            _ignoreGlobs = _gitUtil.GetGitIgnoreGlobs();
+            LogGlobCount(_ignoreGlobs.Count, ".gitignore");
+        }
+
+        private void PrepareAttributesGlobs()
+        {
+            if (!_options.Track)
+            {
+                return;
+            }
+            _attributesGlobs = _gitUtil.GetGitAttributesGlobs();
+            LogGlobCount(_attributesGlobs.Count, ".gitattibutes");
+        }
+
+        private void LogGlobCount(int count, string filename)
+        {
+            if (count > 0)
+            {
+                _logger.Debug("Found " + count + ' ' + filename + " globs");
+            }
         }
 
         private void PrintMeasuredTimeInSeconds(string task)
@@ -188,7 +176,7 @@ namespace Findary
 
         private void ProcessDirectoriesRecursively(string directory)
         {
-            if (!_options.Recursive)
+            if (!_options.Recursive && _statistics.Directories.Total > 0)
             {
                 return;
             }
@@ -232,6 +220,16 @@ namespace Findary
             ProcessFiles(directory);
         }
 
+        private string GetRelativePath(string filePath)
+        {
+            var result = Path.GetFullPath(filePath).Replace(Path.GetFullPath(_options.Directory), string.Empty);
+            if (result.StartsWith('/') || result.StartsWith('\\'))
+            {
+                result = result.Substring(1);
+            }
+            return result;
+        }
+
         private void ProcessFiles(string directory)
         {
             string[] files;
@@ -248,27 +246,30 @@ namespace Findary
             _statistics.Files.Total += (uint)files.Length;
             foreach (var file in files)
             {
+
                 var (formattedExtension, originalExtension) = GetFormattedFileExtension(file);
-                if (IsIgnored(originalExtension))
+                var relativePath = GetRelativePath(file);
+                if (IsIgnored(relativePath))
                 {
                     ++_statistics.IgnoredFiles;
                     _logger.Debug("Found .gitignore match for file: " + file);
                     continue;
                 }
+
+                if (IsAlreadySupported(relativePath))
+                {
+                    ++_statistics.AlreadySupported;
+                    _logger.Debug("Found .gitattributes match for file: " + file);
+                    continue;
+                }
+
                 if (formattedExtension == null) // File has no extension
                 {
                     if (IsFileBinary(file))
                     {
-                        var relativePath = Path.GetFullPath(file).Replace(Path.GetFullPath(_options.Directory), string.Empty);
-                        while (relativePath.StartsWith('\\'))
-                        {
-                            if (relativePath.Length <= 1)
-                            {
-                                continue;
-                            }
-                            relativePath = relativePath[1..].Replace('\\', '/');
-                            _binaryFiles.Add(relativePath);
-                        }
+                        relativePath = relativePath.Replace('\\', '/');
+                        relativePath = relativePath.StartsWith('/') ? relativePath[1..] : relativePath;
+                        _binaryFiles.Add(relativePath);
                     }
                     continue;
                 }
