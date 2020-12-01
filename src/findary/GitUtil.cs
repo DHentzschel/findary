@@ -145,6 +145,29 @@ namespace Findary
         }
 
 
+        private List<string> GetFileLines(string directory, string filename)
+        {
+            var result = new List<string>();
+            var filePath = Path.Combine(directory, filename);
+            if (!File.Exists(filePath))
+            {
+                _logger.Debug("Could not find file " + filename);
+                return result;
+            }
+
+            try
+            {
+                result = File.ReadAllLines(filePath).ToList();
+            }
+            catch (Exception e)
+            {
+                _logger.Warn("Could not read file " + filename + ": " + e.Message);
+                return result;
+            }
+
+            return result;
+        }
+
         public List<Glob> GetGitIgnoreGlobs()
         {
             var result = new List<Glob>();
