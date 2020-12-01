@@ -153,6 +153,8 @@ namespace Findary
 
         private bool IsIgnored(string file) => _options.IgnoreFiles && _ignoreGlobs.Any(p => p.IsMatch(file));
 
+        private bool IsAlreadySupported(string file) => _options.Track && _attributesGlobs.Any(p => p.IsMatch(file));
+
         private void PrepareIgnoreGlobs()
         {
             _ignoreGlobs = GetGlobs(_options.Directory);
