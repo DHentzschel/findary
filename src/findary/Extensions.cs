@@ -29,7 +29,10 @@ namespace Findary
                 }
                 call += addendum;
             }
-            AddPreparedLine(call);
+            if (!string.IsNullOrEmpty(call))
+            {
+                AddPreparedLine(call);
+            }
             return result;
         }
 
