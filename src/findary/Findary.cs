@@ -260,6 +260,7 @@ namespace Findary
             _statistics.Files.Total += (uint)files.Length;
             foreach (var file in files)
             {
+
                 var (formattedExtension, originalExtension) = GetFormattedFileExtension(file);
                 var relativePath = GetRelativePath(file);
                 if (IsIgnored(relativePath))
@@ -268,6 +269,14 @@ namespace Findary
                     _logger.Debug("Found .gitignore match for file: " + file);
                     continue;
                 }
+
+                if (IsAlreadySupported(relativePath))
+                {
+                    ++_statistics.AlreadySupported;
+                    _logger.Debug("Found .gitattributes match for file: " + file);
+                    continue;
+                }
+
                 if (formattedExtension == null) // File has no extension
                 {
                     if (IsFileBinary(file))
