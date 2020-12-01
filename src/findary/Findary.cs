@@ -22,6 +22,7 @@ namespace Findary
 
         private bool _hasReachedGitDir;
         private List<Glob> _ignoreGlobs;
+        private List<Glob> _attributesGlobs;
 
         public Findary(Options options)
         {
@@ -35,6 +36,7 @@ namespace Findary
             _stopwatch.Start();
 
             PrepareIgnoreGlobs();
+            PrepareAttributesGlobs();
             ProcessDirectory(_options.Directory);
 
             PrintMeasuredTimeInSeconds("reading");
@@ -119,8 +121,30 @@ namespace Findary
 
         private void PrepareIgnoreGlobs()
         {
-            _ignoreGlobs = GetGlobs(_options.Directory);
-            _logger.Debug("Found " + _ignoreGlobs.Count + " .gitignore globs");
+            if (!_options.IgnoreFiles)
+            {
+                return;
+            }
+            _ignoreGlobs = _gitUtil.GetGitIgnoreGlobs();
+            LogGlobCount(_ignoreGlobs.Count, ".gitignore");
+        }
+
+        private void PrepareAttributesGlobs()
+        {
+            if (!_options.Track)
+            {
+                return;
+            }
+            _attributesGlobs = _gitUtil.GetGitAttributesGlobs();
+            LogGlobCount(_attributesGlobs.Count, ".gitattibutes");
+        }
+
+        private void LogGlobCount(int count, string filename)
+        {
+            if (count > 0)
+            {
+                _logger.Debug("Found " + count + ' ' + filename + " globs");
+            }
         }
 
         private void PrintMeasuredTimeInSeconds(string task)
