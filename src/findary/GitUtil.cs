@@ -144,6 +144,28 @@ namespace Findary
             return false;
         }
 
+
+        private Glob ParseGlob(string line)
+        {
+            var lineSplit = line.Split(' ');
+            if (lineSplit.Length < 5)
+            {
+                return null;
+            }
+
+            var resultString = string.Empty;
+            for (var i = 0; i < lineSplit.Length - 4; ++i)
+            {
+                resultString += lineSplit[i] + (i < lineSplit.Length - 5 ? " " : string.Empty);
+            }
+
+            if (resultString.StartsWith("*."))
+            {
+                resultString = "**/" + resultString;
+            }
+            return Glob.Parse(resultString);
+        }
+
         private void TrackFiles(string arguments, StatisticsDao statistics)
         {
             if (arguments.Length == 0)
