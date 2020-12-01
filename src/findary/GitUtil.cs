@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using DotNet.Globbing;
 
 namespace Findary
 {
@@ -69,11 +71,16 @@ namespace Findary
             }
 
             var command = Path.Combine(GetGitDirectory(), GetGitFilename()) + " lfs track -C " + Path.GetFullPath(_options.Directory);
-            var concatArguments = fileExtensions.Concat("*.", command.Length);
-            concatArguments.ForEach(p => TrackFiles(p, statistics));
-
-            concatArguments = files.Concat(string.Empty, command.Length);
-            concatArguments.ForEach(p => TrackFiles(p, statistics));
+            if (fileExtensions.Count == 0)
+            {
+                var concatArguments = fileExtensions.Concat("*.", command.Length);
+                concatArguments.ForEach(p => TrackFiles(p, statistics));
+            }
+            if (files.Count > 0)
+            {
+                var concatArguments = files.Concat(string.Empty, command.Length);
+                concatArguments.ForEach(p => TrackFiles(p, statistics));
+            }
         }
 
         private string GetNewProcessOutput(string filename, string arguments)
