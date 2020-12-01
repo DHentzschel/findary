@@ -57,9 +57,14 @@ namespace Findary
         public void TrackFiles(List<string> fileExtensions, List<string> files, StatisticsDao statistics)
         {
             var isGitAvailable = IsGitAvailable();
+
             if (!_options.Track || !isGitAvailable || !InitGitLfs())
             {
-                _logger.Error("Could not track files" + (!isGitAvailable ? ", git is not available" : string.Empty));
+                if (_options.Track)
+                {
+                    var addendum = !isGitAvailable ? ", git is not available" : "lfs could not be initialized";
+                    _logger.Error("Could not track files" + addendum);
+                }
                 return;
             }
 
