@@ -190,7 +190,7 @@ namespace Findary
 
         private void ProcessDirectoriesRecursively(string directory)
         {
-            if (!_options.Recursive)
+            if (!_options.Recursive && _statistics.Directories.Total > 0)
             {
                 return;
             }
