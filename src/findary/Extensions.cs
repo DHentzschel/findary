@@ -15,7 +15,7 @@ namespace Findary
             void AddPreparedLine(string line) => result.Add(line.TrimEnd());
             string GetAddendum(string item) => '"' + (prefix.Length > 0 ? prefix : string.Empty) + item + "\" ";
 
-            var maximumChars = MaximumChars - commandLength;
+            var maximumChars = MaximumChars - Math.Abs(commandLength);
             var call = string.Empty;
             foreach (var str in input)
             {
@@ -57,6 +57,7 @@ namespace Findary
         }
 
         public static bool IsGlobComment(this string input) => input.StartsWith('#');
+
         private static bool HasBom(this IReadOnlyList<byte> input, IReadOnlyCollection<byte> bom, IEnumerable<byte> lastByte = null)
         {
             if (input.Count < bom.Count)

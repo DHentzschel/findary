@@ -4,9 +4,11 @@ using NLog.Config;
 using NLog.Targets;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
+using System.IO.Abstractions;
 using System.Linq;
+using Findary.Abstractions;
+using Stopwatch = System.Diagnostics.Stopwatch;
 
 namespace Findary
 {
@@ -23,10 +25,11 @@ namespace Findary
         private List<Glob> _attributesGlobs;
         private bool _hasReachedGitDir;
         private List<Glob> _ignoreGlobs;
+
         public Findary(Options options)
         {
             _options = options;
-            _gitUtil = new GitUtil(options);
+            _gitUtil = new GitUtil(options, new FileSystem(), new ProcessWrapper());
             InitLogConfig();
         }
 
@@ -127,6 +130,7 @@ namespace Findary
         }
 
         private bool IsIgnored(string file) => _options.IgnoreFiles && _ignoreGlobs.Any(p => p.IsMatch(file));
+
         private void LogGlobCount(int count, string filename)
         {
             if (count > 0)
