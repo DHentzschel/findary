@@ -1,10 +1,13 @@
-﻿using NLog;
+﻿using DotNet.Globbing;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.Abstractions;
 using System.IO;
+using System.IO.Abstractions;
 using System.Linq;
-using DotNet.Globbing;
+using Findary.Abstractions;
 
 namespace Findary
 {
@@ -13,14 +16,21 @@ namespace Findary
         private readonly ILogger _logger = LogManager.GetCurrentClassLogger();
         private readonly Options _options;
 
-        public GitUtil(Options options)
+        private readonly IFileSystem _fileSystem;
+        private readonly IProcess _process;
+        private readonly IOperatingSystem _operatingSystem;
+
+        public GitUtil(Options options, IFileSystem fileSystem = null, IProcess process = null, IOperatingSystem operatingSystem = null)
         {
             _options = options;
+            _fileSystem = fileSystem ?? new FileSystem();
+            _process = process ?? new ProcessWrapper();
+            _operatingSystem = operatingSystem ?? new OperatingSystemWrapper();
         }
 
-        public static string GetGitFilename() => "git" + GetPlatformSpecific(".exe", string.Empty);
+        public string GetGitFilename() => "git" + GetPlatformSpecific(".exe", string.Empty);
 
-        public static string GetGitLfsFilename() => GetGitFilename() + GetPlatformSpecific(string.Empty, "-lfs");
+        public string GetGitLfsFilename() => GetGitFilename() + GetPlatformSpecific(string.Empty, "-lfs");
 
         public List<Glob> GetGitAttributesGlobs()
         {
@@ -33,7 +43,7 @@ namespace Findary
                     continue;
                 }
 
-                var parsedGlob = ParseGlob(lineTrimmed);
+                var parsedGlob = ParseGlob(lineTrimmed, false);
                 if (parsedGlob != null)
                 {
                     result.Add(parsedGlob);
@@ -52,7 +62,12 @@ namespace Findary
                 {
                     continue;
                 }
-                result.Add(Glob.Parse(lineTrimmed));
+
+                var parsedGlob = ParseGlob(lineTrimmed, true);
+                if (parsedGlob != null)
+                {
+                    result.Add(parsedGlob);
+                }
             }
             return result;
         }
@@ -96,7 +111,7 @@ namespace Findary
             }
         }
 
-        private static string GetGitDirectory()
+        private string GetGitDirectory()
         {
             var pathVariable = Environment.GetEnvironmentVariable("path");
             if (pathVariable == null)
@@ -108,7 +123,7 @@ namespace Findary
             foreach (var directory in directories)
             {
                 var filePath = Path.Combine(directory, GetGitFilename());
-                if (File.Exists(filePath))
+                if (_fileSystem.File.Exists(filePath))
                 {
                     return directory;
                 }
@@ -116,12 +131,13 @@ namespace Findary
             return null;
         }
 
-        private static string GetPlatformSpecific(string windows, string other) => OperatingSystem.IsWindows() ? windows : other;
+        private string GetPlatformSpecific(string windows, string other) => _operatingSystem.IsWindows() ? windows : other;
+
         private List<string> GetFileLines(string directory, string filename)
         {
             var result = new List<string>();
             var filePath = Path.Combine(directory, filename);
-            if (!File.Exists(filePath))
+            if (!_fileSystem.File.Exists(filePath))
             {
                 _logger.Debug("Could not find file " + filename);
                 return result;
@@ -129,7 +145,7 @@ namespace Findary
 
             try
             {
-                result = File.ReadAllLines(filePath).ToList();
+                result = _fileSystem.File.ReadAllLines(filePath).ToList();
             }
             catch (Exception e)
             {
@@ -148,21 +164,18 @@ namespace Findary
 
         private string GetNewProcessOutput(string filename, string arguments)
         {
-            var process = new Process
+            _process.StartInfo = new ProcessStartInfo
             {
-                StartInfo =
-                {
-                    FileName = filename,
-                    Arguments = arguments,
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    CreateNoWindow = true
-                }
+                FileName = filename,
+                Arguments = arguments,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                CreateNoWindow = true
             };
 
             try
             {
-                process.Start();
+                _process.Start();
             }
             catch (Exception e)
             {
@@ -172,11 +185,11 @@ namespace Findary
 
 
             string output = null;
-            while (!process.StandardOutput.EndOfStream)
+            while (!_process.StandardOutput.EndOfStream)
             {
                 try
                 {
-                    output += (output == null ? string.Empty : "\n") + process.StandardOutput.ReadLine();
+                    output += (output == null ? string.Empty : "\n") + _process.StandardOutput.ReadLine();
                 }
                 catch (Exception e)
                 {
@@ -184,11 +197,11 @@ namespace Findary
                 }
             }
 
-            if (process.ExitCode != 2)
+            if (_process.ExitCode != 2)
             {
                 return output;
             }
-            _logger.Error("Access is probably denied. Exit code " + process.ExitCode + " (try again with admin privileges)");
+            _logger.Error("Access is probably denied. Exit code " + _process.ExitCode + " (try again with admin privileges)");
             return null;
         }
 
@@ -207,6 +220,7 @@ namespace Findary
         private bool IsGitInstalled(string arguments) => IsInstalled(GetGitFilename(), arguments, "git version");
 
         private bool IsGitLfsInstalled(string arguments) => IsInstalled(GetGitLfsFilename(), GetGitLfsArguments(arguments), "git-lfs/");
+
         private bool IsInstalled(string filename, string arguments, string outputPrefix)
         {
             var output = GetNewProcessOutput(filename, arguments);
@@ -217,16 +231,17 @@ namespace Findary
             _logger.Warn("Could not detect a installed version of " + filename);
             return false;
         }
-        private Glob ParseGlob(string line)
+
+        private Glob ParseGlob(string line, bool isGitIgnore)
         {
             var lineSplit = line.Split(' ');
-            if (lineSplit.Length < 5)
+            if (!isGitIgnore && lineSplit.Length < 5)
             {
                 return null;
             }
 
             var resultString = string.Empty;
-            for (var i = 0; i < lineSplit.Length - 4; ++i)
+            for (var i = 0; i < lineSplit.Length - 4 || isGitIgnore && i == 0; ++i)
             {
                 resultString += lineSplit[i] + (i < lineSplit.Length - 5 ? " " : string.Empty);
             }
@@ -235,6 +250,7 @@ namespace Findary
             {
                 resultString = "**/" + resultString;
             }
+
             return Glob.Parse(resultString);
         }
 
