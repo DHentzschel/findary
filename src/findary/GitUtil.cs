@@ -87,7 +87,7 @@ namespace Findary
             return result;
         }
 
-        public void TrackFiles(List<string> fileExtensions, List<string> files, StatisticsDao statistics)
+        public void TrackGlobs(bool isExtension, List<string> globs, StatisticsDao statistics, int commandLength)
         {
             if (!_options.Track || !_isGitAvailable || !InitGitLfs())
             {
@@ -100,20 +100,17 @@ namespace Findary
                 return;
             }
 
-            var command = Path.Combine(GetGitDirectory(), GetGitFilename()) + " lfs track -C " + Path.GetFullPath(_options.Directory);
-            if (fileExtensions.Count == 0)
+            if (globs.Count < 1)
             {
-                var concatArguments = fileExtensions.Concat("*.", command.Length);
-                concatArguments.ForEach(p => TrackFiles(p, statistics));
+                return;
             }
-            if (files.Count > 0)
-            {
-                var concatArguments = files.Concat(string.Empty, command.Length);
-                concatArguments.ForEach(p => TrackFiles(p, statistics));
-            }
+
+            var prefix = isExtension ? "*." : string.Empty;
+            var concatArguments = globs.Concat(prefix, commandLength);
+            concatArguments.ForEach(p => TrackFiles(p, statistics));
         }
 
-        private string GetGitDirectory()
+        public string GetGitDirectory()
         {
             var pathVariable = Environment.GetEnvironmentVariable("path");
             if (pathVariable == null)
