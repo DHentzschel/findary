@@ -272,8 +272,8 @@ namespace Findary
 
             if (trackingCount > 0 || alreadySupportedCount > 0)
             {
-                statistics.TrackedFiles += (uint)trackingCount;
-                statistics.AlreadySupported += (uint)alreadySupportedCount;
+                statistics.TrackedFiles.Value += (uint)trackingCount;
+                statistics.AlreadySupported.Value += (uint)alreadySupportedCount;
                 return;
             }
             _logger.Error("Could not track files. Process output is: " + output);
