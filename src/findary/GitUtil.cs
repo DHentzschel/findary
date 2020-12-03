@@ -19,6 +19,8 @@ namespace Findary
         private readonly IFileSystem _fileSystem;
         private readonly IProcess _process;
         private readonly IOperatingSystem _operatingSystem;
+        private readonly bool _isGitAvailable;
+        private bool _isFirstCall = true;
 
         public GitUtil(Options options, IFileSystem fileSystem = null, IProcess process = null, IOperatingSystem operatingSystem = null)
         {
@@ -26,6 +28,7 @@ namespace Findary
             _fileSystem = fileSystem ?? new FileSystem();
             _process = process ?? new ProcessWrapper();
             _operatingSystem = operatingSystem ?? new OperatingSystemWrapper();
+            _isGitAvailable = IsGitAvailable();
         }
 
         public string GetGitFilename() => "git" + GetPlatformSpecific(".exe", string.Empty);
@@ -86,14 +89,13 @@ namespace Findary
 
         public void TrackFiles(List<string> fileExtensions, List<string> files, StatisticsDao statistics)
         {
-            var isGitAvailable = IsGitAvailable();
-
-            if (!_options.Track || !isGitAvailable || !InitGitLfs())
+            if (!_options.Track || !_isGitAvailable || !InitGitLfs())
             {
-                if (_options.Track)
+                if (_options.Track && _isFirstCall)
                 {
-                    var addendum = !isGitAvailable ? ", git is not available" : "lfs could not be initialized";
-                    _logger.Error("Could not track files" + addendum);
+                    _isFirstCall = false;
+                    var addendum = !_isGitAvailable ? "git is not available" : "lfs could not be initialized";
+                    _logger.Error("Could not track files - " + addendum);
                 }
                 return;
             }
