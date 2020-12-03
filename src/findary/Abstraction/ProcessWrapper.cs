@@ -6,7 +6,7 @@ using System.IO;
 using Microsoft.Win32.SafeHandles;
 using Process = System.Diagnostics.Process;
 
-namespace Findary.Abstractions
+namespace Findary.Abstraction
 {
     public class ProcessWrapper : IProcess
     {

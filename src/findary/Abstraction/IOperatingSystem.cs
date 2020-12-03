@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Findary.Abstractions
+﻿namespace Findary.Abstraction
 {
     public interface IOperatingSystem
     {

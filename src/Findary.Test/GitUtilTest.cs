@@ -1,3 +1,4 @@
+using Findary.Abstraction;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Abstractions;
@@ -5,7 +6,6 @@ using System.IO.Abstractions;
 using System.Linq;
 using System.Text;
 using DotNet.Globbing;
-using Findary.Abstractions;
 using Moq;
 using NUnit.Framework;
 

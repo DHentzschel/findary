@@ -7,7 +7,7 @@ using System.Diagnostics.Abstractions;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
-using Findary.Abstractions;
+using Findary.Abstraction;
 
 namespace Findary
 {

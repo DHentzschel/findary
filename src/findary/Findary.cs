@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
-using Findary.Abstractions;
 using Stopwatch = System.Diagnostics.Stopwatch;
 
 namespace Findary

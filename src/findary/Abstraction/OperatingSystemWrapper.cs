@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Findary.Abstractions
+namespace Findary.Abstraction
 {
     public class OperatingSystemWrapper : IOperatingSystem
     {
