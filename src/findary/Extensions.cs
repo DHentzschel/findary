@@ -6,7 +6,7 @@ namespace Findary
 {
     public static class Extensions
     {
-        private const int MaximumChars = 32767;
+        public const int MaximumChars = 32767;
 
         public static List<string> Concat(this IEnumerable<string> input, string prefix, int commandLength)
         {
