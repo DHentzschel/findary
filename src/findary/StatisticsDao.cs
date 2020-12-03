@@ -2,14 +2,15 @@
 {
     public class StatisticsDao
     {
-        public uint AlreadySupported { get; set; }
+        public ThreadSafeUInt AlreadySupported { get; set; } = new ThreadSafeUInt();
+
         public EntityStatistics Directories { get; set; } = new EntityStatistics(nameof(Directories));
 
         public EntityStatistics Files { get; set; } = new EntityStatistics(nameof(Files));
 
-        public uint IgnoredFiles { get; set; }
+        public ThreadSafeUInt IgnoredFiles { get; set; } = new ThreadSafeUInt();
 
-        public uint TrackedFiles { get; set; }
+        public ThreadSafeUInt TrackedFiles { get; set; } = new ThreadSafeUInt();
 
         public class EntityStatistics
         {
@@ -20,13 +21,13 @@
                 _name = name;
             }
 
-            public uint AccessDenied { get; set; }
+            public ThreadSafeUInt AccessDenied { get; set; } = new ThreadSafeUInt();
 
-            public uint Processed { get; set; }
+            public ThreadSafeUInt Processed { get; set; } = new ThreadSafeUInt();
 
-            public uint Total { get; set; }
+            public ThreadSafeUInt Total { get; set; } = new ThreadSafeUInt();
 
-            public override string ToString() => _name + ": " + Processed + " processed, " + Total + " total, " + AccessDenied + " denied access";
+            public override string ToString() => _name + ": " + Processed.Value + " processed, " + Total.Value + " total, " + AccessDenied.Value + " denied access";
         }
     }
 }
