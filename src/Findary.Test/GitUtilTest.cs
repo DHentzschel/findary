@@ -1,13 +1,11 @@
+using DotNet.Globbing;
 using Findary.Abstraction;
+using Moq;
+using NUnit.Framework;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics.Abstractions;
 using System.IO.Abstractions;
 using System.Linq;
 using System.Text;
-using DotNet.Globbing;
-using Moq;
-using NUnit.Framework;
 
 namespace Findary.Test
 {
