@@ -50,10 +50,9 @@ namespace Findary
                 trackSupportService.Run();
             }
 
-            while (trackFileThread.IsAlive)
+            while (scanService.IsRunning.Value || trackFileService.IsRunning.Value)
             {
             }
-
             PrintStatistics(scanService);
         }
 
