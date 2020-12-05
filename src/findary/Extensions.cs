@@ -8,28 +8,55 @@ namespace Findary
     {
         public const int MaximumChars = 32767;
 
-        public static List<string> Concat(this IEnumerable<string> input, string prefix, int commandLength)
+        public static List<string> ToParamList(this IEnumerable<string> input, string prefix/*, int commandLength*/)
         {
+
+            //void AddPreparedLine(string line) => result.(line.TrimEnd());
+
+
+            //var maximumChars = MaximumChars - Math.Abs(commandLength);
+            //var call = string.Empty;
+            //foreach (var str in input)
+            //{
+            //    var addendum = GetAddendum(str);
+            //if (call.Length + str.Length > maximumChars)
+            //    {
+            //        AddPreparedLine(call);
+            //        call = string.Empty;
+            //    }
+            //    call += addendum;
+            //}
+            //if (!string.IsNullOrEmpty(call))
+            //{
+            //    AddPreparedLine(call);
+            //}
+            string GetAddendum(string item) => " \"" + (prefix.Length > 0 ? prefix : string.Empty) + item + "\"";
+            return input.Select(file => GetAddendum(file)).ToList();
+        }
+
+        public static List<string> Split(this List<string> input, int commandPrefixLength)
+        {
+            var commandLength = commandPrefixLength;
+            var line = string.Empty;
             var result = new List<string>();
-
-            void AddPreparedLine(string line) => result.Add(line.TrimEnd());
-            string GetAddendum(string item) => '"' + (prefix.Length > 0 ? prefix : string.Empty) + item + "\" ";
-
-            var maximumChars = MaximumChars - Math.Abs(commandLength);
-            var call = string.Empty;
-            foreach (var str in input)
+            foreach (var item in input)
             {
-                var addendum = GetAddendum(str);
-                if (call.Length + addendum.Length > maximumChars)
+                var newCommandLength = commandLength + item.Length;
+                if (newCommandLength < MaximumChars)
                 {
-                    AddPreparedLine(call);
-                    call = string.Empty;
+                    line += " " + item;
+                    commandLength += item.Length;
                 }
-                call += addendum;
+                else
+                {
+                    result.Add(line);
+                    line = string.Empty;
+                }
             }
-            if (!string.IsNullOrEmpty(call))
+
+            if (!string.IsNullOrEmpty(line))
             {
-                AddPreparedLine(call);
+                result.Add(line);
             }
             return result;
         }
