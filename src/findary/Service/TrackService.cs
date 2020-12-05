@@ -54,29 +54,54 @@ namespace Findary.Service
             var queue = _isExtension ? ScanService.FileExtensionQueue : ScanService.FileQueue;
             var lfsCommand = GetLfsCommand();
             var commandLength = lfsCommand.Length;
+            while (_scanService.IsRunning.Value || !queue.IsEmpty || items.Count > 0)
             {
-                while (!queue.IsEmpty && commandLength < Extensions.MaximumChars)
+                if (!queue.IsEmpty)
                 {
+                    var isRunning = _scanService.IsRunning.Value;
                     queue.TryDequeue(out var result);
                     if (result == null)
                     {
                         continue;
                     }
+
+                    var newCommandLength = CalculateCommandLength(commandLength, result);
+                    bool TrackLater() => isRunning && newCommandLength < Extensions.MaximumChars;
+
+                    if (TrackLater() || items.Count == 0)
+                    {
+                        commandLength = newCommandLength;
+                        ++_counterTrackLater;
+                        _logger.Debug("Executing TrackLater: " + _counterTrackLater + " - current command length: " + commandLength);
+                    }
+                    else
+                    {
+                        ++_counterTrackGlobs;
+                        _logger.Debug("Executing TrackGlobs: " + _counterTrackGlobs + " - current command length: " + commandLength);
+
+                        _triggerStopwatch.Restart();
+                        TrackGlobs(items, lfsCommand.Length);
+                        commandLength = lfsCommand.Length;
+                        commandLength = CalculateCommandLength(commandLength, result);
+                    }
                     items.Add(result);
-                    commandLength += (isFirstRun ? 2 : 3) + result.Length;
-                    isFirstRun = false;
                 }
-                _gitUtil.TrackGlobs(_isExtension, items, _statistics, commandLength);
-                items.Clear();
-                // Reset variables
-                if (commandLength < Extensions.MaximumChars)
+
+                if (!_scanService.IsRunning.Value && (commandLength >= Extensions.MaximumChars || queue.IsEmpty))
                 {
-                    commandLength = GetLfsCommand().Length;
-                    isFirstRun = true;
+                    TrackGlobs(items, lfsCommand.Length);
+                    commandLength = lfsCommand.Length;
                 }
             }
             _logger.Debug("Stopping track service at time " + DateTime.Now.ToString("hh:mm:ss.ffffff"));
             PrintTimeSpent();
+            IsRunning.Value = false;
+        }
+
+        private void TrackGlobs(List<string> items, int commandPrefixLength)
+        {
+            _gitUtil.TrackGlobs(_isExtension, items, _statistics, commandPrefixLength, Process);
+            items.Clear();
         }
 
         public void PrintTimeSpent()
