@@ -8,6 +8,7 @@ using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using Findary.Abstraction;
+using Process = System.Diagnostics.Process;
 
 namespace Findary
 {
@@ -111,8 +112,9 @@ namespace Findary
             }
 
             var prefix = isExtension ? "*." : string.Empty;
-            var concatArguments = globs.Concat(prefix, commandLength);
-            concatArguments.ForEach(p => TrackFiles(p, statistics));
+            var parameters = globs.ToParamList(prefix);
+            var parameterLists = parameters.Split(commandPrefixLength);
+            parameterLists.ForEach(p => TrackFiles(p, statistics));
         }
 
         public string GetGitDirectory()
