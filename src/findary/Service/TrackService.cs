@@ -41,7 +41,9 @@ namespace Findary.Service
         private int _counterTrackGlobs = 0;
         public void Run()
         {
+            _triggerStopwatch.Restart();
             Stopwatch.Restart();
+            IsRunning.Value = true;
 
             _logger.Debug("Starting track service at time " + DateTime.Now.ToString("hh:mm:ss.ffffff"));
             var items = new List<string>();
