@@ -239,7 +239,7 @@ namespace Findary.Service
 
                 if (IsAlreadySupported(relativePath))
                 {
-                    ++_statistics.AlreadySupported.Value;
+                    //++_statistics.AlreadySupported.Value;
                     _logger.Debug("Found .gitattributes match for file: " + file);
                     continue;
                 }
