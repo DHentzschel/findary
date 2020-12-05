@@ -13,8 +13,6 @@ namespace Findary.Service
 {
     public class ScanService : IService
     {
-        private readonly List<string> _finalFileExtensionList = new List<string>();
-        private readonly List<string> _finalFileList = new List<string>();
         private readonly GitUtil _gitUtil;
         private readonly ILogger _logger = LogManager.GetCurrentClassLogger();
         private readonly Options _options;
@@ -29,6 +27,10 @@ namespace Findary.Service
             var fileSystemObject = fileSystem ?? new FileSystem();
             _gitUtil = new GitUtil(options, fileSystemObject, new ProcessWrapper());
         }
+
+        public List<string> FinalFileExtensionList { get; } = new List<string>();
+
+        public List<string> FinalFileList { get; } = new List<string>();
 
         public List<Glob> AttributesGlobs { get; set; }
 
@@ -159,8 +161,8 @@ namespace Findary.Service
 
         private void PrintResults()
         {
-            _finalFileExtensionList.ForEach(_logger.Info);
-            _finalFileList.ForEach(_logger.Info);
+            FinalFileExtensionList.ForEach(_logger.Info);
+            FinalFileList.ForEach(_logger.Info);
         }
 
         private void ProcessDirectoriesRecursively(string directory)
@@ -248,12 +250,12 @@ namespace Findary.Service
                     {
                         relativePath = relativePath.Replace('\\', '/');
                         relativePath = relativePath.StartsWith('/') ? relativePath[1..] : relativePath;
-                        if (_finalFileList.Contains(relativePath))
+                        if (FinalFileList.Contains(relativePath))
                         {
                             continue;
                         }
                         FileQueue.Enqueue(relativePath);
-                        _finalFileList.Add(relativePath);
+                        FinalFileList.Add(relativePath);
                     }
                     continue;
                 }
@@ -264,19 +266,19 @@ namespace Findary.Service
                 }
 
                 FileExtensionQueue.Enqueue(formattedExtension);
-                _finalFileExtensionList.Add(formattedExtension);
+                FinalFileExtensionList.Add(formattedExtension);
                 var message = "Added file type " + formattedExtension.ToUpper() + " from file path: " + file;
                 _logger.Debug(message);
             }
         }
 
         private bool ShouldBeAdded(string fileExtension, string file)
-            => fileExtension != null && !_finalFileExtensionList.Contains(fileExtension) && IsFileBinary(file);
+            => fileExtension != null && !FinalFileExtensionList.Contains(fileExtension) && IsFileBinary(file);
 
         private void SortResults()
         {
-            _finalFileExtensionList.Sort();
-            _finalFileList.Sort();
+            FinalFileExtensionList.Sort();
+            FinalFileList.Sort();
         }
     }
 }
