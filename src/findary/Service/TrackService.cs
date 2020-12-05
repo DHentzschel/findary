@@ -39,6 +39,10 @@ namespace Findary.Service
         private int _counterTrackLater = 0;
 
         private int _counterTrackGlobs = 0;
+
+        private int CalculateCommandLength(int commandLength, string result)
+            => commandLength + result.Length + 3;
+
         public void Run()
         {
             _triggerStopwatch.Restart();
