@@ -34,9 +34,9 @@ namespace Findary.Service
 
         public List<Glob> AttributesGlobs { get; set; }
 
-        public ConcurrentQueue<string> FileExtensionQueue { get; set; } = new ConcurrentQueue<string>();
+        public static ConcurrentQueue<string> FileExtensionQueue { get; set; } = new ConcurrentQueue<string>();
 
-        public ConcurrentQueue<string> FileQueue { get; set; } = new ConcurrentQueue<string>();
+        public static ConcurrentQueue<string> FileQueue { get; set; } = new ConcurrentQueue<string>();
 
         public List<Glob> IgnoreGlobs { get; set; }
 

@@ -37,10 +37,9 @@ namespace Findary.Service
 
             _logger.Debug("Starting track service at time " + DateTime.Now.ToString("hh:mm:ss.ffffff"));
             var items = new List<string>();
-            var queue = _isExtension ? _scanService.FileExtensionQueue : _scanService.FileQueue;
-            var commandLength = GetLfsCommand().Length;
-            var isFirstRun = true;
-            while (_scanService.IsRunning.Value || items.Count > 0)
+            var queue = _isExtension ? ScanService.FileExtensionQueue : ScanService.FileQueue;
+            var lfsCommand = GetLfsCommand();
+            var commandLength = lfsCommand.Length;
             {
                 while (!queue.IsEmpty && commandLength < Extensions.MaximumChars)
                 {

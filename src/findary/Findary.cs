@@ -37,15 +37,14 @@ namespace Findary
             var trackFileExtensionService = new TrackService(_options, true, scanService, _statistics);
             trackFileExtensionService.Run();
 
-
             TrackService trackSupportService;
-            if (!scanService.FileQueue.IsEmpty)
+            if (!ScanService.FileQueue.IsEmpty)
             {
                 trackSupportService = new TrackService(_options,false, scanService,_statistics);
                 trackSupportService.Run();
             }
 
-            if (scanService.FileExtensionQueue.IsEmpty)
+            if (ScanService.FileExtensionQueue.IsEmpty)
             {
                 trackSupportService = new TrackService(_options,false, scanService,_statistics);
                 trackSupportService.Run();
