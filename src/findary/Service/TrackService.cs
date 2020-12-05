@@ -17,6 +17,7 @@ namespace Findary.Service
         private readonly Options _options;
         private readonly ScanService _scanService;
         private readonly StatisticsDao _statistics;
+        private readonly Stopwatch _triggerStopwatch = new Stopwatch();
 
         public TrackService(Options options, bool isExtension, ScanService scanService = null, StatisticsDao statistics = null,
             IFileSystem fileSystem = null, IProcess process = null)
@@ -29,8 +30,15 @@ namespace Findary.Service
             _scanService = scanService ?? new ScanService(options, _statistics, fileSystemObject);
         }
 
+        public IProcess Process { get; set; } = new ProcessWrapper();
+
+        public ThreadSafeBool IsRunning { get; set; } = new ThreadSafeBool();
+
         public Stopwatch Stopwatch { get; set; } = new Stopwatch();
 
+        private int _counterTrackLater = 0;
+
+        private int _counterTrackGlobs = 0;
         public void Run()
         {
             Stopwatch.Restart();
