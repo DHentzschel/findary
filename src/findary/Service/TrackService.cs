@@ -20,12 +20,12 @@ namespace Findary.Service
         private readonly Stopwatch _triggerStopwatch = new Stopwatch();
 
         public TrackService(Options options, bool isExtension, ScanService scanService = null, StatisticsDao statistics = null,
-            IFileSystem fileSystem = null, IProcess process = null)
+            IFileSystem fileSystem = null)
         {
             _options = options;
             _isExtension = isExtension;
             var fileSystemObject = fileSystem ?? new FileSystem();
-            _gitUtil = new GitUtil(options, fileSystemObject, process ?? new ProcessWrapper());
+            _gitUtil = new GitUtil(options, fileSystemObject);
             _statistics = statistics ?? new StatisticsDao();
             _scanService = scanService ?? new ScanService(options, _statistics, fileSystemObject);
         }
