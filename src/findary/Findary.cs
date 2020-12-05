@@ -1,4 +1,6 @@
-﻿using System.Threading;
+﻿using System.Diagnostics.Abstractions;
+using System.Threading;
+using Findary.Abstraction;
 using Findary.Service;
 using NLog;
 using NLog.Config;
