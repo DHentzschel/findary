@@ -75,7 +75,7 @@ namespace Findary
             _logger.Log(logLevel, _statistics.Directories.ToString());
             _logger.Log(logLevel, _statistics.Files.ToString());
             _logger.Log(logLevel, "Ignored files: " + _statistics.IgnoredFiles.Value);
-            var message = "Binaries: " + scanService.FileExtensionQueue.Count + " types, " + scanService.FileQueue.Count
+            var message = "Binaries: " + scanService.FinalFileExtensionList.Count + " types, " + scanService.FinalFileList.Count
                           + " files (" + _statistics.TrackedFiles.Value + " tracked new, " + _statistics.AlreadySupported.Value +
                           " already supported)";
             _logger.Log(logLevel, message);
