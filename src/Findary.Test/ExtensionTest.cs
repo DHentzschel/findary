@@ -51,7 +51,7 @@ namespace Findary.Test
         {
             var left = new List<string>();
             left.AddRange(new[] { "avi", "mp3", "png" });
-            var result = left.Concat("*.", 10);
+            var result = left.ToParamList("*.", 10);
             var expected = new List<string>();
             expected.AddRange(new[] { "\"*.avi\" \"*.mp3\" \"*.png\"" });
             Assert.IsTrue(expected.AreEqual(result));
