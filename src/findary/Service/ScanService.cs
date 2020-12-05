@@ -25,7 +25,7 @@ namespace Findary.Service
             _options = options;
             _statistics = statistics ?? new StatisticsDao();
             var fileSystemObject = fileSystem ?? new FileSystem();
-            _gitUtil = new GitUtil(options, fileSystemObject, new ProcessWrapper());
+            _gitUtil = new GitUtil(options, fileSystemObject);
         }
 
         public List<string> FinalFileExtensionList { get; } = new List<string>();

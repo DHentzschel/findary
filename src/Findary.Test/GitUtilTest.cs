@@ -115,7 +115,7 @@ namespace Findary.Test
             var mockOperatingSystem = new Mock<IOperatingSystem>();
             mockOperatingSystem.Setup(p => p.IsWindows()).Returns(true);
 
-            _gitUtil = new GitUtil(GetDefaultOptions(), null, null, mockOperatingSystem.Object);
+            _gitUtil = new GitUtil(GetDefaultOptions(), null, mockOperatingSystem.Object);
             var result = _gitUtil.GetGitLfsArguments("test");
             var commandStringBuilder = new StringBuilder();
 
@@ -129,7 +129,7 @@ namespace Findary.Test
         {
             var mockOperatingSystem = new Mock<IOperatingSystem>();
             mockOperatingSystem.Setup(p => p.IsWindows()).Returns(false);
-            _gitUtil = new GitUtil(GetDefaultOptions(), null, null, mockOperatingSystem.Object);
+            _gitUtil = new GitUtil(GetDefaultOptions(), null, mockOperatingSystem.Object);
             var result = _gitUtil.GetGitLfsArguments("test");
             const string expected = "test";
             Assert.AreEqual(expected, result);
@@ -153,7 +153,7 @@ namespace Findary.Test
         {
             var mockOs = new Mock<IOperatingSystem>();
             mockOs.Setup(p => p.IsWindows()).Returns(true);
-            _gitUtil = new GitUtil(GetDefaultOptions(), null, null, mockOs.Object);
+            _gitUtil = new GitUtil(GetDefaultOptions(), null, mockOs.Object);
             var result = _gitUtil.GetGitFilename();
             const string expected = "git.exe";
             Assert.AreEqual(expected, result);
@@ -164,7 +164,7 @@ namespace Findary.Test
         {
             var mockOs = new Mock<IOperatingSystem>();
             mockOs.Setup(p => p.IsWindows()).Returns(false);
-            _gitUtil = new GitUtil(GetDefaultOptions(), null, null, mockOs.Object);
+            _gitUtil = new GitUtil(GetDefaultOptions(), null, mockOs.Object);
             var result = _gitUtil.GetGitFilename();
             const string expected = "git";
             Assert.AreEqual(expected, result);
@@ -175,7 +175,7 @@ namespace Findary.Test
         {
             var mockOs = new Mock<IOperatingSystem>();
             mockOs.Setup(p => p.IsWindows()).Returns(true);
-            _gitUtil = new GitUtil(GetDefaultOptions(), null, null, mockOs.Object);
+            _gitUtil = new GitUtil(GetDefaultOptions(), null, mockOs.Object);
             var result = _gitUtil.GetGitLfsFilename();
             const string expected = "git.exe";
             Assert.AreEqual(expected, result);
@@ -186,7 +186,7 @@ namespace Findary.Test
         {
             var mockOs = new Mock<IOperatingSystem>();
             mockOs.Setup(p => p.IsWindows()).Returns(false);
-            _gitUtil = new GitUtil(GetDefaultOptions(), null, null, mockOs.Object);
+            _gitUtil = new GitUtil(GetDefaultOptions(), null, mockOs.Object);
             var result = _gitUtil.GetGitLfsFilename();
             const string expected = "git-lfs";
             Assert.AreEqual(expected, result);
