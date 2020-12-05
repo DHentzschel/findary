@@ -78,7 +78,7 @@ namespace Findary.Service
 
         private string GetRelativePath(string filePath)
         {
-            var result = Path.GetFullPath(filePath).Replace(Path.GetFullPath(_options.Directory), string.Empty);
+            var result = Path.GetFullPath(filePath).Replace(Path.GetFullPath(_options.Directory), string.Empty, StringComparison.CurrentCultureIgnoreCase);
             if (result.StartsWith('/') || result.StartsWith('\\'))
             {
                 result = result.Substring(1);
