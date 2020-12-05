@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.Abstractions;
 using System.IO;
+using System.Threading;
 using Microsoft.Win32.SafeHandles;
 using Process = System.Diagnostics.Process;
 
@@ -137,8 +138,9 @@ namespace Findary.Abstraction
                 {
                     _object.StartInfo = value;
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
+                    Console.Error.WriteLine("Exception when setting StartInfo: " + e.Message);
                 }
             }
         }
