@@ -120,7 +120,7 @@ namespace Findary.Service
                 }
 
                 var zeroIndex = Array.FindIndex(bytes, p => p == '\0');
-                if (zeroIndex > -1 && zeroIndex < bytesRead - 1)
+                if (zeroIndex > -1 && zeroIndex < bytesRead)
                 {
                     return true;
                 }
