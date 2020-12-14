@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.Abstractions;
+﻿using System;
+using System.Diagnostics.Abstractions;
 using System.Threading;
 using Findary.Abstraction;
 using Findary.Service;
@@ -23,7 +24,16 @@ namespace Findary
         }
 
         public void Run()
-        {
+        {  
+            var path = @"C:\Program Files\Git\cmd";
+            var variable = Environment.GetEnvironmentVariable("path");
+
+            if (variable.Contains(path, StringComparison.CurrentCultureIgnoreCase))
+            {
+                Environment.SetEnvironmentVariable("path", variable + ";" + path);
+                Console.WriteLine("Added git to path variable: " + Environment.GetEnvironmentVariable("path"));
+            }
+
             _stopwatch.Start();
 
             var scanService = new ScanService(_options, _statistics);
