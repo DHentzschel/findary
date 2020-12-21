@@ -1,4 +1,5 @@
 ﻿using DotNet.Globbing;
+using Findary.Abstraction;
 using NLog;
 using System;
 using System.Collections.Generic;
@@ -7,8 +8,6 @@ using System.Diagnostics.Abstractions;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
-using Findary.Abstraction;
-using Process = System.Diagnostics.Process;
 
 namespace Findary
 {
@@ -46,7 +45,6 @@ namespace Findary
                 {
                     continue;
                 }
-
                 var parsedGlob = ParseGlob(lineTrimmed, false);
                 if (parsedGlob != null)
                 {
@@ -59,7 +57,8 @@ namespace Findary
         public List<Glob> GetGitIgnoreGlobs()
         {
             var result = new List<Glob>();
-            foreach (var line in GetGitIgnoreLines())
+            var lines = GetGitIgnoreLines();
+            foreach (var line in lines)
             {
                 var lineTrimmed = line.TrimStart();
                 if (string.IsNullOrEmpty(lineTrimmed) || lineTrimmed.IsGlobComment())
