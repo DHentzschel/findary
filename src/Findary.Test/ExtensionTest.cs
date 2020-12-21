@@ -46,16 +46,16 @@ namespace Findary.Test
             Assert.IsFalse(left.AreEqual(_list2), "list count attributes are not equal");
         }
 
-        [Test]
-        public void TestConcatExtensions()
-        {
-            var left = new List<string>();
-            left.AddRange(new[] { "avi", "mp3", "png" });
-            var result = left.ToParamList("*.", 10);
-            var expected = new List<string>();
-            expected.AddRange(new[] { "\"*.avi\" \"*.mp3\" \"*.png\"" });
-            Assert.IsTrue(expected.AreEqual(result));
-        }
+        //[Test]
+        //public void TestConcatExtensions()
+        //{
+        //    var left = new List<string>();
+        //    left.AddRange(new[] { "avi", "mp3", "png" });
+        //    var result = left.ToParamList("*.", 10);
+        //    var expected = new List<string>();
+        //    expected.AddRange(new[] { "\"*.avi\" \"*.mp3\" \"*.png\"" });
+        //    Assert.IsTrue(expected.AreEqual(result));
+        //}
 
         [Test]
         public void TestCount()
