@@ -229,7 +229,7 @@ namespace Findary.Service
             {
 
                 var (formattedExtension, originalExtension) = GetFormattedFileExtension(file);
-                var relativePath = GetRelativePath(file);
+                var relativePath = GetRelativePath(file).Replace('\\', '/');
                 if (IsIgnored(relativePath))
                 {
                     ++_statistics.IgnoredFiles.Value;
