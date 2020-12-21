@@ -254,11 +254,15 @@ namespace Findary
                 resultString += lineSplit[i] + (i < lineSplit.Length - 5 ? " " : string.Empty);
             }
 
-            if (resultString.StartsWith("*."))
+            var isFolder = resultString.EndsWith('/');
+            if (resultString.StartsWith("*.") || isFolder)
             {
                 resultString = "**/" + resultString;
+                if (isFolder)
+                {
+                    resultString += "**";
+                }
             }
-
             return Glob.Parse(resultString);
         }
 
