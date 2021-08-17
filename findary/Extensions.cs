@@ -6,7 +6,7 @@ namespace Findary
 {
     public static class Extensions
     {
-        public const int MaximumChars = 32767;
+        public const int MaximumChars = 32767; // 2^15-1
 
         public static List<string> ToParamList(this IEnumerable<string> input, string prefix/*, int commandLength*/)
         {
