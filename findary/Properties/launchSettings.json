@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Findary": {
+      "commandName": "Project",
+      "commandLineArgs": "-rimtsv -d \"D:\\_git\\biosphere\\themother\""
+    }
+  }
+}
