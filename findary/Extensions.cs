@@ -10,8 +10,8 @@ namespace Findary
 
         public static List<string> ToParamList(this IEnumerable<string> input, string prefix/*, int commandLength*/)
         {
-            string GetAddendum(string item) => " \"" + (prefix.Length > 0 ? prefix : string.Empty) + item + "\"";
-            return input.Select(file => GetAddendum(file)).ToList();
+            string GetAddendum(string item) => '"' + (prefix.Length > 0 ? prefix : string.Empty) + item + '"';
+            return input.Select(GetAddendum).ToList();
         }
 
         public static List<string> Split(this List<string> input, int commandPrefixLength)
