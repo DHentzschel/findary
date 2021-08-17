@@ -10,26 +10,6 @@ namespace Findary
 
         public static List<string> ToParamList(this IEnumerable<string> input, string prefix/*, int commandLength*/)
         {
-
-            //void AddPreparedLine(string line) => result.(line.TrimEnd());
-
-
-            //var maximumChars = MaximumChars - Math.Abs(commandLength);
-            //var call = string.Empty;
-            //foreach (var str in input)
-            //{
-            //    var addendum = GetAddendum(str);
-            //if (call.Length + str.Length > maximumChars)
-            //    {
-            //        AddPreparedLine(call);
-            //        call = string.Empty;
-            //    }
-            //    call += addendum;
-            //}
-            //if (!string.IsNullOrEmpty(call))
-            //{
-            //    AddPreparedLine(call);
-            //}
             string GetAddendum(string item) => " \"" + (prefix.Length > 0 ? prefix : string.Empty) + item + "\"";
             return input.Select(file => GetAddendum(file)).ToList();
         }
