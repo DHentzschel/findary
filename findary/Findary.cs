@@ -28,7 +28,7 @@ namespace Findary
             var path = @"C:\Program Files\Git\cmd";
             var variable = Environment.GetEnvironmentVariable("path");
 
-            if (variable.Contains(path, StringComparison.CurrentCultureIgnoreCase))
+            if (variable != null && variable.Contains(path, StringComparison.CurrentCultureIgnoreCase))
             {
                 Environment.SetEnvironmentVariable("path", variable + ";" + path);
                 Console.WriteLine("Added git to path variable: " + Environment.GetEnvironmentVariable("path"));
