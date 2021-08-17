@@ -24,7 +24,7 @@ namespace Findary
         }
 
         public void Run()
-        {  
+        {
             var path = @"C:\Program Files\Git\cmd";
             var variable = Environment.GetEnvironmentVariable("path");
 
