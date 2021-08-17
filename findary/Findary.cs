@@ -14,8 +14,8 @@ namespace Findary
     {
         private readonly ILogger _logger = LogManager.GetCurrentClassLogger();
         private readonly Options _options;
-        private readonly StatisticsDao _statistics = new StatisticsDao();
-        private readonly Stopwatch _stopwatch = new Stopwatch();
+        private readonly StatisticsDao _statistics = new();
+        private readonly Stopwatch _stopwatch = new();
 
         public Findary(Options options)
         {
