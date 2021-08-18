@@ -1,11 +1,9 @@
-﻿using System;
-using System.Diagnostics.Abstractions;
-using System.Threading;
-using Findary.Abstraction;
-using Findary.Service;
+﻿using Findary.Service;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
+using System;
+using System.Threading;
 using Stopwatch = System.Diagnostics.Stopwatch;
 
 namespace Findary
