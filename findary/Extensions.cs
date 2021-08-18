@@ -53,7 +53,6 @@ namespace Findary
             return result;
         }
 
-
-        public static bool IsGlobComment(this string input) => input.StartsWith('#');
+        public static bool IsGlobComment(this string input) => input.TrimStart().StartsWith('#');
     }
 }
