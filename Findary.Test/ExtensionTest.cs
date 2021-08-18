@@ -178,6 +178,20 @@ namespace Findary.Test
         public void TestIsGlobCommentWithoutPrefix()
         {
             const string result = " # this is a comment";
+            Assert.True(result.IsGlobComment());
+        }
+
+        [Test]
+        public void TestIsGlobCommentTab()
+        {
+            const string result = "\t# this is a comment";
+            Assert.True(result.IsGlobComment());
+        }
+
+        [Test]
+        public void TestIsGlobCommentInvalid()
+        {
+            const string result = "string s = \"# this is not a comment\";";
             Assert.False(result.IsGlobComment());
         }
     }
