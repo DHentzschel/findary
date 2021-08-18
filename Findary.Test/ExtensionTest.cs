@@ -83,77 +83,88 @@ namespace Findary.Test
         public void TestIsUtf8()
         {
             var result = new byte[] { 0xEF, 0xBB, 0xBF, 0x00 };
-            Assert.IsTrue(result.HasBom());
+            var bom = new Bom { InputArray = result };
+            Assert.IsTrue(bom.HasBom());
         }
 
         [Test]
         public void TestIsUtfEbcDic()
         {
             var result = new byte[] { 0xDD, 0x73, 0x66, 0x73, 0x00 };
-            Assert.IsTrue(result.HasBom());
+            var bom = new Bom { InputArray = result };
+            Assert.IsTrue(bom.HasBom());
         }
 
         [Test]
         public void TestIsUtf7()
         {
             var result = new byte[] { 0x2B, 0x2F, 0x76, 0x38, 0x00 };
-            Assert.IsTrue(result.HasBom());
+            var bom = new Bom { InputArray = result };
+            Assert.IsTrue(bom.HasBom());
         }
 
         [Test]
         public void TestIsUtf32Le()
         {
             var result = new byte[] { 0xFF, 0xFE, 0x00F, 0x00, 0x00 };
-            Assert.IsTrue(result.HasBom());
+            var bom = new Bom { InputArray = result };
+            Assert.IsTrue(bom.HasBom());
         }
 
         [Test]
         public void TestIsUtf32Be()
         {
             var result = new byte[] { 0x00, 0x00, 0xFE, 0xFF };
-            Assert.IsTrue(result.HasBom());
+            var bom = new Bom { InputArray = result };
+            Assert.IsTrue(bom.HasBom());
         }
 
         [Test]
         public void TestIsUtf16Le()
         {
             var result = new byte[] { 0xFF, 0xFE, 0x00 };
-            Assert.IsTrue(result.HasBom());
+            var bom = new Bom { InputArray = result };
+            Assert.IsTrue(bom.HasBom());
         }
 
         [Test]
         public void TestIsUtf16Be()
         {
             var result = new byte[] { 0xFE, 0xFF, 0x00 };
-            Assert.IsTrue(result.HasBom());
+            var bom = new Bom { InputArray = result };
+            Assert.IsTrue(bom.HasBom());
         }
 
         [Test]
         public void TestIsUtf1()
         {
             var result = new byte[] { 0xF7, 0x64, 0x4C, 0x00 };
-            Assert.IsTrue(result.HasBom());
+            var bom = new Bom { InputArray = result };
+            Assert.IsTrue(bom.HasBom());
         }
 
         [Test]
         public void TestIsScsu()
         {
             var result = new byte[] { 0x0E, 0xFE, 0xFF, 0x00 };
-            Assert.IsTrue(result.HasBom());
+            var bom = new Bom { InputArray = result };
+            Assert.IsTrue(bom.HasBom());
         }
 
         [Test]
         public void TestIsGb18030()
         {
             var result = new byte[] { 0x84, 0x31, 0x95, 0x33, 0x00 };
-            Assert.IsTrue(result.HasBom());
+            var bom = new Bom { InputArray = result };
+            Assert.IsTrue(bom.HasBom());
         }
 
         [Test]
         public void TestIsBocu1()
         {
             var result = new byte[] { 0xFB, 0xEE, 0x28, 0x00 };
-            Assert.IsTrue(result.HasBom());
+            var bom = new Bom { InputArray = result };
+            Assert.IsTrue(bom.HasBom());
         }
 
         [Test]

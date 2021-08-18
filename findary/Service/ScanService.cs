@@ -108,12 +108,14 @@ namespace Findary.Service
             var bytes = new byte[1024];
             int bytesRead;
             var isFirstBlock = true;
+            var bom = new Bom();
             while ((bytesRead = fileStream.Read(bytes, 0, bytes.Length)) > 0)
             {
                 if (isFirstBlock)
                 {
                     ++_statistics.Files.Processed.Value;
-                    if (bytes.HasBom())
+                    bom.InputArray = bytes;
+                    if (bom.HasBom())
                     {
                         return false;
                     }
