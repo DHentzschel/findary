@@ -14,11 +14,11 @@ namespace Findary
     public class Findary
     {
         private readonly ILogger _logger = LogManager.GetCurrentClassLogger();
+        private readonly IOperatingSystem _operatingSystem = new OperatingSystemWrapper();
         private readonly Options _options;
         private readonly StatisticsDao _statistics = new();
         private readonly Stopwatch _stopwatch = new();
 
-        private IOperatingSystem _operatingSystem = new OperatingSystemWrapper();
         private LogLevel _logLevel;
         private string _versionSuffix = "-pre1";
 
