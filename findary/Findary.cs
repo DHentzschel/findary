@@ -17,6 +17,7 @@ namespace Findary
         private readonly Options _options;
         private readonly StatisticsDao _statistics = new();
         private readonly Stopwatch _stopwatch = new();
+        private string _versionSuffix = "-pre1";
 
         public Findary(Options options)
         {
