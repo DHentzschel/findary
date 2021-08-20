@@ -216,8 +216,10 @@ namespace Findary.Service
                         {
                             continue;
                         }
+
+                        var absolutePath = Path.Combine(_options.Directory, relativePath).Replace('\\', '/'); ;
                         FileQueue.Enqueue(relativePath);
-                        FinalFileList.Add(relativePath);
+                        FinalFileList.Add(absolutePath);
                     }
                     continue;
                 }
