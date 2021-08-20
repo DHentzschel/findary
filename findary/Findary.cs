@@ -4,6 +4,8 @@ using NLog;
 using NLog.Config;
 using NLog.Targets;
 using System;
+using System.IO;
+using System.Net.Mime;
 using System.Reflection;
 using System.Threading;
 using Stopwatch = System.Diagnostics.Stopwatch;
@@ -30,10 +32,7 @@ namespace Findary
             if (_options.PrintVersion)
             {
                 PrintVersion(_options);
-                if (_options.Directory == default)
-                {
-                    return;
-                }
+                return;
             }
 
             var path = @"C:\Program Files\Git\cmd";
