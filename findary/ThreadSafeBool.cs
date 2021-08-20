@@ -9,7 +9,8 @@ namespace Findary
         public bool Value
         {
             get => Interlocked.CompareExchange(ref _threadSafeBoolBackValue, 1, 1) == 1;
-            set {
+            set
+            {
                 if (value)
                 {
                     Interlocked.CompareExchange(ref _threadSafeBoolBackValue, 1, 0);

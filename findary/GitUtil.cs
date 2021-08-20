@@ -15,14 +15,16 @@ namespace Findary
     public class GitUtil
     {
         private static readonly ILogger Logger = LogManager.GetCurrentClassLogger();
+
+        private readonly Regex _errorRegex = new("Error.*(\\n|$)", RegexOptions.Compiled);
+        private readonly IFileSystem _fileSystem;
+        private readonly IOperatingSystem _operatingSystem;
         private readonly Options _options;
 
-        private readonly IFileSystem _fileSystem;
-        private IProcess _process;
-        private readonly IOperatingSystem _operatingSystem;
-        private bool _isGitAvailable;
         private bool _isFirstCall = true;
-        private Regex _errorRegex = new Regex("Error.*(\\n|$)", RegexOptions.Compiled);
+        private bool _isGitAvailable;
+
+        private IProcess _process;
 
         public GitUtil(Options options, IFileSystem fileSystem = null, /*IProcess process = null,*/ IOperatingSystem operatingSystem = null)
         {
@@ -34,6 +36,26 @@ namespace Findary
         }
 
         public static string GitDirectory { get; } = GetGitDirectory(Logger, new FileSystem(), new OperatingSystemWrapper());
+
+        public static string GetGitDirectory(ILogger logger, IFileSystem fileSystem, IOperatingSystem operatingSystem)
+        {
+            var pathVariable = Environment.GetEnvironmentVariable("path");
+            if (pathVariable == null)
+            {
+                return null;
+            }
+
+            var directories = pathVariable.Split(';');
+            foreach (var directory in directories)
+            {
+                var filePath = Path.Combine(directory, GetGitFilename(operatingSystem));
+                if (fileSystem.File.Exists(filePath))
+                {
+                    return directory;
+                }
+            }
+            return null;
+        }
 
         public static string GetGitFilename(IOperatingSystem operatingSystem) => "git" + GetPlatformSpecific(".exe", string.Empty, operatingSystem);
 
@@ -119,58 +141,6 @@ namespace Findary
             var parameterLists = parameters.Split(commandPrefixLength);
             parameterLists.ForEach(p => TrackFiles(p, statistics, _operatingSystem));
         }
-
-        public static string GetGitDirectory(ILogger logger, IFileSystem fileSystem, IOperatingSystem operatingSystem)
-        {
-            var pathVariable = Environment.GetEnvironmentVariable("path");
-            if (pathVariable == null)
-            {
-                return null;
-            }
-
-            var directories = pathVariable.Split(';');
-            foreach (var directory in directories)
-            {
-                var filePath = Path.Combine(directory, GetGitFilename(operatingSystem));
-                if (fileSystem.File.Exists(filePath))
-                {
-                    return directory;
-                }
-            }
-            return null;
-        }
-
-        private static string GetPlatformSpecific(string windows, string other, IOperatingSystem operatingSystem) => operatingSystem.IsWindows() ? windows : other;
-
-        private List<string> GetFileLines(string directory, string filename)
-        {
-            var result = new List<string>();
-            var filePath = Path.Combine(directory, filename);
-            if (!_fileSystem.File.Exists(filePath))
-            {
-                Logger.Info("Could not find file " + filename);
-                return result;
-            }
-
-            try
-            {
-                result = _fileSystem.File.ReadAllLines(filePath).ToList();
-            }
-            catch (Exception e)
-            {
-                Logger.Warn("Could not read file " + filename + ": " + e.Message);
-                return result;
-            }
-
-            return result;
-        }
-
-        private List<string> GetGitAttributesLines()
-            => !_options.Track ? new List<string>() : GetFileLines(_options.Directory, ".gitattributes");
-
-        private List<string> GetGitIgnoreLines()
-            => !_options.IgnoreFiles ? new List<string>() : GetFileLines(_options.Directory, ".gitignore");
-
         private static string GetNewProcessOutput(string filename, string arguments, IProcess process = null)
         {
             process ??= new ProcessWrapper();
@@ -216,21 +186,7 @@ namespace Findary
             return null;
         }
 
-        private bool InitGitLfs(IProcess process, IOperatingSystem operatingSystem)
-        {
-            var output = GetNewProcessOutput(GetGitLfsFilename(operatingSystem), GetGitLfsArguments("install", operatingSystem, true), process);
-            return output?.EndsWith("Git LFS initialized.") == true;
-        }
-
-        private bool IsGitAvailable(IProcess process, IOperatingSystem operatingSystem)
-        {
-            const string arguments = "version";
-            return IsGitInstalled(arguments, process, operatingSystem) && IsGitLfsInstalled(arguments, process, operatingSystem);
-        }
-
-        private bool IsGitInstalled(string arguments, IProcess process, IOperatingSystem operatingSystem) => IsInstalled(GetGitFilename(operatingSystem), arguments, "git version", process);
-
-        private bool IsGitLfsInstalled(string arguments, IProcess process, IOperatingSystem operatingSystem) => IsInstalled(GetGitLfsFilename(operatingSystem), GetGitLfsArguments(arguments, operatingSystem), "git-lfs/", process);
+        private static string GetPlatformSpecific(string windows, string other, IOperatingSystem operatingSystem) => operatingSystem.IsWindows() ? windows : other;
 
         private static bool IsInstalled(string filename, string arguments, string outputPrefix, IProcess process)
         {
@@ -269,6 +225,49 @@ namespace Findary
             return Glob.Parse(resultString);
         }
 
+        private List<string> GetFileLines(string directory, string filename)
+        {
+            var result = new List<string>();
+            var filePath = Path.Combine(directory, filename);
+            if (!_fileSystem.File.Exists(filePath))
+            {
+                Logger.Info("Could not find file " + filename);
+                return result;
+            }
+
+            try
+            {
+                result = _fileSystem.File.ReadAllLines(filePath).ToList();
+            }
+            catch (Exception e)
+            {
+                Logger.Warn("Could not read file " + filename + ": " + e.Message);
+                return result;
+            }
+
+            return result;
+        }
+
+        private List<string> GetGitAttributesLines()
+            => !_options.Track ? new List<string>() : GetFileLines(_options.Directory, ".gitattributes");
+
+        private List<string> GetGitIgnoreLines()
+            => !_options.IgnoreFiles ? new List<string>() : GetFileLines(_options.Directory, ".gitignore");
+        private bool InitGitLfs(IProcess process, IOperatingSystem operatingSystem)
+        {
+            var output = GetNewProcessOutput(GetGitLfsFilename(operatingSystem), GetGitLfsArguments("install", operatingSystem, true), process);
+            return output?.EndsWith("Git LFS initialized.") == true;
+        }
+
+        private bool IsGitAvailable(IProcess process, IOperatingSystem operatingSystem)
+        {
+            const string arguments = "version";
+            return IsGitInstalled(arguments, process, operatingSystem) && IsGitLfsInstalled(arguments, process, operatingSystem);
+        }
+
+        private bool IsGitInstalled(string arguments, IProcess process, IOperatingSystem operatingSystem) => IsInstalled(GetGitFilename(operatingSystem), arguments, "git version", process);
+
+        private bool IsGitLfsInstalled(string arguments, IProcess process, IOperatingSystem operatingSystem) => IsInstalled(GetGitLfsFilename(operatingSystem), GetGitLfsArguments(arguments, operatingSystem), "git-lfs/", process);
         private void TrackFiles(string arguments, StatisticsDao statistics, IOperatingSystem operatingSystem)
         {
             if (arguments.Length == 0)

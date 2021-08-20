@@ -1,6 +1,6 @@
-﻿using System;
+﻿using NUnit.Framework;
+using System;
 using System.Collections.Generic;
-using NUnit.Framework;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -19,18 +19,9 @@ namespace Findary.Test
         }
 
         [Test]
-        public void TestIsFileBinaryUtf()
+        public void TestIsFileBinaryEmpty()
         {
-            var input = new byte[] { 0x48, 0x0, 0x64, 0x0, 0x6c, 0x0, 0x6c, 0x0, 0x6f, 0x0 };
-            var memoryStream = new MemoryStream(input);
-            var fileScan = new FileScan.FileScan();
-            Assert.IsTrue(fileScan.IsFileBinary(memoryStream));
-        }
-
-        [Test]
-        public void TestIsFileBinaryText()
-        {
-            var input = Encoding.ASCII.GetBytes("hello");
+            var input = Array.Empty<byte>();
             var memoryStream = new MemoryStream(input);
             var fileScan = new FileScan.FileScan();
             Assert.IsFalse(fileScan.IsFileBinary(memoryStream));
@@ -47,12 +38,21 @@ namespace Findary.Test
         }
 
         [Test]
-        public void TestIsFileBinaryEmpty()
+        public void TestIsFileBinaryText()
         {
-            var input = Array.Empty<byte>();
+            var input = Encoding.ASCII.GetBytes("hello");
             var memoryStream = new MemoryStream(input);
             var fileScan = new FileScan.FileScan();
             Assert.IsFalse(fileScan.IsFileBinary(memoryStream));
+        }
+
+        [Test]
+        public void TestIsFileBinaryUtf()
+        {
+            var input = new byte[] { 0x48, 0x0, 0x64, 0x0, 0x6c, 0x0, 0x6c, 0x0, 0x6f, 0x0 };
+            var memoryStream = new MemoryStream(input);
+            var fileScan = new FileScan.FileScan();
+            Assert.IsTrue(fileScan.IsFileBinary(memoryStream));
         }
     }
 }

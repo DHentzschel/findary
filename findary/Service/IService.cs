@@ -8,8 +8,8 @@ namespace Findary.Service
 
         public Stopwatch Stopwatch { get; set; }
 
-        void Run();
-
         void PrintTimeSpent();
+
+        void Run();
     }
 }

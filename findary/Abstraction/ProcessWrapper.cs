@@ -1,10 +1,9 @@
-﻿using System;
+﻿using Microsoft.Win32.SafeHandles;
+using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.Abstractions;
 using System.IO;
-using System.Threading;
-using Microsoft.Win32.SafeHandles;
 using Process = System.Diagnostics.Process;
 
 namespace Findary.Abstraction
