@@ -37,19 +37,11 @@ namespace Findary
                 return;
             }
 
-            if (_options.PrintHelp)
-            {
-                PrintHelpScreen();
-                return;
-            }
-
             _options.Directory ??= AppDomain.CurrentDomain.BaseDirectory;
 
             StartServices();
         }
-
-        private static void PrintHelpScreen() => Parser.Default.ParseArguments<Options>(new[] { "--help" });
-
+        
         private static void WaitUntilEnd(IService scanService, IService trackService)
         {
             while (scanService.IsRunning.Value || trackService.IsRunning.Value)
