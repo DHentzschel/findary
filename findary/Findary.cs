@@ -1,25 +1,25 @@
-﻿using Findary.Abstraction;
+﻿using CommandLine;
+using Findary.Abstraction;
 using Findary.Service;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
 using System;
-using System.IO;
-using System.Net.Mime;
 using System.Reflection;
 using System.Threading;
-using CommandLine;
 using Stopwatch = System.Diagnostics.Stopwatch;
 
 namespace Findary
 {
     public class Findary
     {
-        private LogLevel _logLevel;
         private readonly ILogger _logger = LogManager.GetCurrentClassLogger();
+        private readonly IOperatingSystem _operatingSystem = new OperatingSystemWrapper();
         private readonly Options _options;
         private readonly StatisticsDao _statistics = new();
         private readonly Stopwatch _stopwatch = new();
+
+        private LogLevel _logLevel;
         private string _versionSuffix = "-pre1";
 
         public Findary(Options options)
@@ -42,69 +42,17 @@ namespace Findary
                 return;
             }
 
-            var path = @"C:\Program Files\Git\cmd";
-            var variable = Environment.GetEnvironmentVariable("path");
+            _options.Directory ??= AppDomain.CurrentDomain.BaseDirectory;
 
-            if (variable != null && variable.Contains(path, StringComparison.CurrentCultureIgnoreCase))
-            {
-                Environment.SetEnvironmentVariable("path", variable + ";" + path);
-                Console.WriteLine("Added git to path variable: " + Environment.GetEnvironmentVariable("path"));
-            }
-
-            if (_options.Directory == default)
-            {
-                _options.Directory = AppDomain.CurrentDomain.BaseDirectory;
-            }
-
-            _stopwatch.Start();
-
-            var scanService = new ScanService(_options, _statistics);
-            var scanThread = new Thread(scanService.Run);
-            scanThread.Start();
-
-            _stopwatch.Restart();
-            var operatingSystem = new OperatingSystemWrapper();
-            var trackFileService = new TrackService(_options, false, operatingSystem, scanService, _statistics);
-            var trackFileThread = new Thread(trackFileService.Run);
-            trackFileThread.Start();
-
-            var trackFileExtensionService = new TrackService(_options, true, operatingSystem, scanService, _statistics);
-            trackFileExtensionService.Run();
-
-            TrackService trackSupportService;
-            if (!ScanService.FileQueue.IsEmpty)
-            {
-                trackSupportService = new TrackService(_options, false, operatingSystem, scanService, _statistics);
-                trackSupportService.Run();
-            }
-
-            if (ScanService.FileExtensionQueue.IsEmpty)
-            {
-                trackSupportService = new TrackService(_options, false, operatingSystem, scanService, _statistics);
-                trackSupportService.Run();
-            }
-
-            while (scanService.IsRunning.Value || trackFileService.IsRunning.Value)
-            {
-            }
-            PrintStatistics(scanService);
+            StartServices();
         }
 
         private static void PrintHelpScreen() => Parser.Default.ParseArguments<Options>(new[] { "--help" });
 
-        private void PrintVersion(Options options)
+        private static void WaitUntilEnd(ScanService scanService, TrackService trackService)
         {
-            var assembly = Assembly.GetEntryAssembly();
-            var version = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
-            var appName = GetType().Assembly.GetName();
-            var message = appName.Name + ' ' + version + _versionSuffix;
-            if (options.Verbose || _logLevel.Name == LogLevel.Debug.Name)
+            while (scanService.IsRunning.Value || trackService.IsRunning.Value)
             {
-                _logger.Debug(message);
-            }
-            else
-            {
-                Console.WriteLine(message);
             }
         }
 
@@ -133,6 +81,70 @@ namespace Findary
                           _statistics.AlreadySupported.Value +
                           " already supported)";
             _logger.Log(logLevel, message);
+        }
+
+        private void PrintVersion(Options options)
+        {
+            var assembly = Assembly.GetEntryAssembly();
+            var version = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+            var appName = GetType().Assembly.GetName();
+            var message = appName.Name + ' ' + version + _versionSuffix;
+            if (options.Verbose || _logLevel.Name == LogLevel.Debug.Name)
+            {
+                _logger.Debug(message);
+            }
+            else
+            {
+                Console.WriteLine(message);
+            }
+        }
+
+        private ScanService StartScanService()
+        {
+            _stopwatch.Start();
+            var result = new ScanService(_options, _statistics);
+            var scanThread = new Thread(result.Run);
+            scanThread.Start();
+            return result;
+        }
+
+        private void StartServices()
+        {
+            var scanService = StartScanService();
+            var trackFileService = StartTrackService(scanService);
+
+            StartTrackService(scanService, true, false);
+
+            if (!ScanService.FileQueue.IsEmpty)
+            {
+                StartTrackService(scanService, false, false);
+            }
+
+            // Just to be sure
+            if (!ScanService.FileExtensionQueue.IsEmpty)
+            {
+                StartTrackService(scanService, true, false);
+            }
+
+            WaitUntilEnd(scanService, trackFileService);
+            PrintStatistics(scanService);
+        }
+
+        private TrackService StartTrackService(ScanService scanService, bool isExtensionService = false, bool startThread = true)
+        {
+            _stopwatch.Restart();
+            var result = new TrackService(_options, isExtensionService, _operatingSystem, scanService, _statistics);
+
+            if (startThread)
+            {
+                var trackFileThread = new Thread(result.Run);
+                trackFileThread.Start();
+            }
+            else
+            {
+                result.Run();
+            }
+            return result;
         }
     }
 }
