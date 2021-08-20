@@ -17,6 +17,7 @@ namespace Findary.Service
         private readonly StatisticsDao _statistics;
         private readonly IFileScan _fileScan;
         private readonly Options _options;
+        private readonly IFileSystem _fileSystem;
         private readonly GitUtil _gitUtil;
 
         private bool _hasReachedGitDir;
@@ -26,26 +27,27 @@ namespace Findary.Service
         {
             _options = options;
             _statistics = statistics ?? new StatisticsDao();
-            var fileSystemObject = fileSystem ?? new FileSystem();
-            _gitUtil = new GitUtil(options, fileSystemObject);
+            _fileScan = fileScan ?? new FileScan.FileScan();
+            _fileScan.Statistics = _statistics;
+            _fileSystem = fileSystem ?? new FileSystem();
+            _gitUtil = new GitUtil(options, _fileSystem);
         }
 
-        public List<string> FinalFileExtensionList { get; } = new List<string>();
+        public List<string> FinalFileExtensionList { get; } = new();
 
-        public List<string> FinalFileList { get; } = new List<string>();
+        public List<string> FinalFileList { get; } = new();
 
         public List<Glob> AttributesGlobs { get; set; }
 
-        public static ConcurrentQueue<string> FileExtensionQueue { get; set; } = new ConcurrentQueue<string>();
+        public static ConcurrentQueue<string> FileExtensionQueue { get; set; } = new();
 
-        public static ConcurrentQueue<string> FileQueue { get; set; } = new ConcurrentQueue<string>();
+        public static ConcurrentQueue<string> FileQueue { get; set; } = new();
 
         public List<Glob> IgnoreGlobs { get; set; }
 
+        public ThreadSafeBool IsRunning { get; set; } = new();
 
-        public ThreadSafeBool IsRunning { get; set; } = new ThreadSafeBool();
-
-        public Stopwatch Stopwatch { get; set; } = new Stopwatch();
+        public Stopwatch Stopwatch { get; set; } = new();
 
         public void Run()
         {
@@ -83,7 +85,7 @@ namespace Findary.Service
             var result = Path.GetFullPath(filePath).Replace(Path.GetFullPath(_options.Directory), string.Empty, StringComparison.CurrentCultureIgnoreCase);
             if (result.StartsWith('/') || result.StartsWith('\\'))
             {
-                result = result.Substring(1);
+                result = result[1..];
             }
             return result;
         }

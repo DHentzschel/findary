@@ -1,6 +1,6 @@
-﻿using System;
-using Findary.Abstraction;
+﻿using Findary.Abstraction;
 using NLog;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.Abstractions;
 using System.IO;
@@ -11,13 +11,13 @@ namespace Findary.Service
 {
     public class TrackService : IService
     {
-        private readonly GitUtil _gitUtil;
         private readonly bool _isExtension;
         private readonly ILogger _logger = LogManager.GetCurrentClassLogger();
         private readonly Options _options;
+        private readonly GitUtil _gitUtil;
         private readonly ScanService _scanService;
         private readonly StatisticsDao _statistics;
-        private readonly Stopwatch _triggerStopwatch = new Stopwatch();
+        private readonly Stopwatch _triggerStopwatch = new();
 
         public TrackService(Options options, bool isExtension, IOperatingSystem operatingSystem, ScanService scanService = null, StatisticsDao statistics = null,
             IFileSystem fileSystem = null)
@@ -32,15 +32,15 @@ namespace Findary.Service
 
         public IProcess Process { get; set; } = new ProcessWrapper();
 
-        public ThreadSafeBool IsRunning { get; set; } = new ThreadSafeBool();
+        public ThreadSafeBool IsRunning { get; set; } = new();
 
-        public Stopwatch Stopwatch { get; set; } = new Stopwatch();
+        public Stopwatch Stopwatch { get; set; } = new();
 
-        private int _counterTrackLater = 0;
+        private int _counterTrackLater; // = 0
 
-        private int _counterTrackGlobs = 0;
+        private int _counterTrackGlobs; // = 0
 
-        private int CalculateCommandLength(int commandLength, string result)
+        private static int CalculateCommandLength(int commandLength, string result)
             => commandLength + result.Length + 3;
 
         public void Run()
