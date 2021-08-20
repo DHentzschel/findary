@@ -88,50 +88,6 @@ namespace Findary.Service
 
         private bool IsAlreadySupported(string file) => _options.Track && AttributesGlobs.Any(p => p.IsMatch(file));
 
-        private bool IsFileBinary(string filePath)
-        {
-            FileStream fileStream;
-            try
-            {
-                fileStream = File.OpenRead(filePath);
-            }
-            catch (Exception e)
-            {
-                _logger.Warn("Could not read file " + filePath + ": " + e.Message);
-                if (e is UnauthorizedAccessException)
-                {
-                    ++_statistics.Files.AccessDenied.Value;
-                }
-                return false;
-            }
-
-            var bytes = new byte[1024];
-            int bytesRead;
-            var isFirstBlock = true;
-            var bom = new Bom();
-            while ((bytesRead = fileStream.Read(bytes, 0, bytes.Length)) > 0)
-            {
-                if (isFirstBlock)
-                {
-                    ++_statistics.Files.Processed.Value;
-                    bom.InputArray = bytes;
-                    if (bom.HasBom())
-                    {
-                        return false;
-                    }
-                }
-
-                var zeroIndex = Array.FindIndex(bytes, p => p == '\0');
-                if (zeroIndex > -1 && zeroIndex < bytesRead)
-                {
-                    return true;
-                }
-
-                isFirstBlock = false;
-            }
-            return false;
-        }
-
         private bool IsIgnored(string file) => _options.IgnoreFiles && IgnoreGlobs.Any(p => p.IsMatch(file));
 
         private void LogGlobCount(int count, string filename)
