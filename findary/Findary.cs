@@ -8,6 +8,7 @@ using System.IO;
 using System.Net.Mime;
 using System.Reflection;
 using System.Threading;
+using CommandLine;
 using Stopwatch = System.Diagnostics.Stopwatch;
 
 namespace Findary
@@ -32,6 +33,12 @@ namespace Findary
             if (_options.PrintVersion)
             {
                 PrintVersion(_options);
+                return;
+            }
+
+            if (_options.PrintHelp)
+            {
+                PrintHelpScreen();
                 return;
             }
 
@@ -82,6 +89,8 @@ namespace Findary
             }
             PrintStatistics(scanService);
         }
+
+        private static void PrintHelpScreen() => Parser.Default.ParseArguments<Options>(new[] { "--help" });
 
         private void PrintVersion(Options options)
         {
