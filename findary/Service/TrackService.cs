@@ -74,12 +74,12 @@ namespace Findary.Service
                     {
                         commandLength = newCommandLength;
                         ++_counterTrackLater;
-                        _logger.Debug("Executing TrackLater: " + _counterTrackLater + " - current command length: " + commandLength);
+                        _logger.Debug("Executing " + nameof(TrackLater) + ": " + _counterTrackLater + " - current command length: " + commandLength);
                     }
                     else
                     {
                         ++_counterTrackGlobs;
-                        _logger.Debug("Executing TrackGlobs: " + _counterTrackGlobs + " - current command length: " + commandLength);
+                        _logger.Debug("Executing " + nameof(TrackGlobs) + ": " + _counterTrackGlobs + " - current command length: " + commandLength);
 
                         _triggerStopwatch.Restart();
                         TrackGlobs(items, lfsCommand.Length);

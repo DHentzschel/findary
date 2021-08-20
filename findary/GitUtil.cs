@@ -130,7 +130,6 @@ namespace Findary
             foreach (var directory in directories)
             {
                 var filePath = Path.Combine(directory, GetGitFilename(operatingSystem));
-                logger.Debug(nameof(GetGitDirectory) + ": if (_fileSystem.File.Exists(" + filePath + "))");
                 if (fileSystem.File.Exists(filePath))
                 {
                     return directory;
@@ -145,16 +144,14 @@ namespace Findary
         {
             var result = new List<string>();
             var filePath = Path.Combine(directory, filename);
-            Logger.Debug(nameof(GetFileLines) + ": if (!_fileSystem.File.Exists(" + filePath + "))");
             if (!_fileSystem.File.Exists(filePath))
             {
-                Logger.Debug("Could not find file " + filename);
+                Logger.Info("Could not find file " + filename);
                 return result;
             }
 
             try
             {
-                Logger.Debug(nameof(GetFileLines) + ": _fileSystem.File.ReadAllLines(" + filePath + ").ToList();");
                 result = _fileSystem.File.ReadAllLines(filePath).ToList();
             }
             catch (Exception e)
