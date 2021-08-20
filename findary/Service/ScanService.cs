@@ -121,8 +121,8 @@ namespace Findary.Service
 
         private void PrintResults()
         {
-            FinalFileExtensionList.ForEach(_logger.Info);
-            FinalFileList.ForEach(_logger.Info);
+            FinalFileExtensionList.ForEach(p => _logger.Info("Binary file extensions:\n" + p));
+            FinalFileList.ForEach(p => _logger.Info("\nBinary files:\n" + p));
         }
 
         private void ProcessDirectoriesRecursively(string directory)
