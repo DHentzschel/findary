@@ -1,5 +1,4 @@
 ﻿using DotNet.Globbing;
-using Findary.Abstraction;
 using NLog;
 using System;
 using System.Collections.Concurrent;
@@ -8,19 +7,22 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
+using Findary.FileScan;
 
 namespace Findary.Service
 {
     public class ScanService : IService
     {
-        private readonly GitUtil _gitUtil;
         private readonly ILogger _logger = LogManager.GetCurrentClassLogger();
+        private readonly StatisticsDao _statistics;
+        private readonly IFileScan _fileScan;
         private readonly Options _options;
+        private readonly GitUtil _gitUtil;
+
         private bool _hasReachedGitDir;
 
-        private readonly StatisticsDao _statistics;
 
-        public ScanService(Options options, StatisticsDao statistics = null, IFileSystem fileSystem = null)
+        public ScanService(Options options, StatisticsDao statistics = null, IFileSystem fileSystem = null, IFileScan fileScan = null)
         {
             _options = options;
             _statistics = statistics ?? new StatisticsDao();
@@ -129,7 +131,7 @@ namespace Findary.Service
             {
                 return;
             }
-            if (!Directory.Exists(directory))
+            if (!_fileSystem.Directory.Exists(directory))
             {
                 _logger.Warn("Could not find directory: " + directory);
                 return;
@@ -138,7 +140,7 @@ namespace Findary.Service
             string[] directories;
             try
             {
-                directories = Directory.EnumerateDirectories(directory).ToArray();
+                directories = _fileSystem.Directory.EnumerateDirectories(directory).ToArray();
             }
             catch (Exception e)
             {
@@ -174,7 +176,7 @@ namespace Findary.Service
             string[] files;
             try
             {
-                files = Directory.EnumerateFiles(directory).ToArray();
+                files = _fileSystem.Directory.EnumerateFiles(directory).ToArray();
             }
             catch (Exception e)
             {
@@ -204,7 +206,7 @@ namespace Findary.Service
 
                 if (formattedExtension == null) // File has no extension
                 {
-                    if (IsFileBinary(file))
+                    if (_fileScan.IsFileBinary(file))
                     {
                         relativePath = relativePath.Replace('\\', '/');
                         relativePath = relativePath.StartsWith('/') ? relativePath[1..] : relativePath;
@@ -231,7 +233,7 @@ namespace Findary.Service
         }
 
         private bool ShouldBeAdded(string fileExtension, string file)
-            => fileExtension != null && !FinalFileExtensionList.Contains(fileExtension) && IsFileBinary(file);
+            => fileExtension != null && !FinalFileExtensionList.Contains(fileExtension) && _fileScan.IsFileBinary(file);
 
         private void SortResults()
         {
