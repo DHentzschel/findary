@@ -18,6 +18,7 @@ namespace Findary.Service
         private readonly ScanService _scanService;
         private readonly StatisticsDao _statistics;
         private readonly Stopwatch _triggerStopwatch = new();
+        private readonly IOperatingSystem _operatingSystem;
 
         public TrackService(Options options, bool isExtension, IOperatingSystem operatingSystem, ScanService scanService = null, StatisticsDao statistics = null,
             IFileSystem fileSystem = null)
@@ -28,6 +29,7 @@ namespace Findary.Service
             _gitUtil = new GitUtil(options, fileSystemObject);
             _statistics = statistics ?? new StatisticsDao();
             _scanService = scanService ?? new ScanService(options, _statistics, fileSystemObject);
+            _operatingSystem = operatingSystem;
         }
 
         public IProcess Process { get; set; } = new ProcessWrapper();
@@ -114,7 +116,7 @@ namespace Findary.Service
             _logger.Info("Time spent tracking: " + seconds + 's');
         }
 
-        private string GetLfsCommand() => Path.Combine(_gitUtil.GetGitDirectory(), _gitUtil.GetGitFilename()) +
+        private string GetLfsCommand() => Path.Combine(GitUtil.GitDirectory, GitUtil.GetGitFilename(_operatingSystem)) +
                                           " lfs track -C " + Path.GetFullPath(_options.Directory);
     }
 }
