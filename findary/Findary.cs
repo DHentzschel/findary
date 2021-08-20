@@ -83,6 +83,8 @@ namespace Findary
             PrintStatistics(scanService);
         }
 
+        private static void PrintHelpScreen() => Parser.Default.ParseArguments<Options>(new[] { "--help" });
+
         private void PrintVersion(Options options)
         {
             var assembly = Assembly.GetEntryAssembly();
