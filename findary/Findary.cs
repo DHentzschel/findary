@@ -1,20 +1,25 @@
-﻿using Findary.Service;
+﻿using Findary.Abstraction;
+using Findary.Service;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
 using System;
+using System.IO;
+using System.Net.Mime;
+using System.Reflection;
 using System.Threading;
-using Findary.Abstraction;
 using Stopwatch = System.Diagnostics.Stopwatch;
 
 namespace Findary
 {
     public class Findary
     {
+        private LogLevel _logLevel;
         private readonly ILogger _logger = LogManager.GetCurrentClassLogger();
         private readonly Options _options;
         private readonly StatisticsDao _statistics = new();
         private readonly Stopwatch _stopwatch = new();
+        private string _versionSuffix = "-pre1";
 
         public Findary(Options options)
         {
@@ -24,6 +29,12 @@ namespace Findary
 
         public void Run()
         {
+            if (_options.PrintVersion)
+            {
+                PrintVersion(_options);
+                return;
+            }
+
             var path = @"C:\Program Files\Git\cmd";
             var variable = Environment.GetEnvironmentVariable("path");
 
@@ -31,6 +42,11 @@ namespace Findary
             {
                 Environment.SetEnvironmentVariable("path", variable + ";" + path);
                 Console.WriteLine("Added git to path variable: " + Environment.GetEnvironmentVariable("path"));
+            }
+
+            if (_options.Directory == default)
+            {
+                _options.Directory = AppDomain.CurrentDomain.BaseDirectory;
             }
 
             _stopwatch.Start();
@@ -67,6 +83,22 @@ namespace Findary
             PrintStatistics(scanService);
         }
 
+        private void PrintVersion(Options options)
+        {
+            var assembly = Assembly.GetEntryAssembly();
+            var version = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+            var appName = GetType().Assembly.GetName();
+            var message = appName.Name + ' ' + version + _versionSuffix;
+            if (options.Verbose || _logLevel.Name == LogLevel.Debug.Name)
+            {
+                _logger.Debug(message);
+            }
+            else
+            {
+                Console.WriteLine(message);
+            }
+        }
+
         private void InitLogConfig()
         {
             var loggingConfiguration = new LoggingConfiguration();
@@ -75,8 +107,8 @@ namespace Findary
                 Name = "console",
                 Layout = "${message}"
             };
-            var logLevel = _options.Verbose ? LogLevel.Debug : LogLevel.Info;
-            loggingConfiguration.AddRule(logLevel, LogLevel.Fatal, consoleTarget);
+            _logLevel = _options.Verbose ? LogLevel.Debug : LogLevel.Info;
+            loggingConfiguration.AddRule(_logLevel, LogLevel.Fatal, consoleTarget);
             LogManager.Configuration = loggingConfiguration;
         }
 
