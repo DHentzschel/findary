@@ -27,5 +27,8 @@ namespace Findary
 
         [Option('V', "version", HelpText = "Print Findary version")]
         public bool PrintVersion { get; set; }
+
+        [Option('h', "help", HelpText = "Print this help text")]
+        public bool PrintHelp { get; set; }
     }
 }
