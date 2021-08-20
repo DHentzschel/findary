@@ -45,6 +45,11 @@ namespace Findary
                 Console.WriteLine("Added git to path variable: " + Environment.GetEnvironmentVariable("path"));
             }
 
+            if (_options.Directory == default)
+            {
+                _options.Directory = AppDomain.CurrentDomain.BaseDirectory;
+            }
+
             _stopwatch.Start();
 
             var scanService = new ScanService(_options, _statistics);
