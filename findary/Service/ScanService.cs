@@ -1,4 +1,5 @@
 ﻿using DotNet.Globbing;
+using Findary.FileScan;
 using NLog;
 using System;
 using System.Collections.Concurrent;
@@ -7,21 +8,19 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
-using Findary.FileScan;
 
 namespace Findary.Service
 {
     public class ScanService : IService
     {
-        private readonly ILogger _logger = LogManager.GetCurrentClassLogger();
-        private readonly StatisticsDao _statistics;
         private readonly IFileScan _fileScan;
-        private readonly Options _options;
         private readonly IFileSystem _fileSystem;
         private readonly GitUtil _gitUtil;
+        private readonly ILogger _logger = LogManager.GetCurrentClassLogger();
+        private readonly Options _options;
+        private readonly StatisticsDao _statistics;
 
         private bool _hasReachedGitDir;
-
 
         public ScanService(Options options, StatisticsDao statistics = null, IFileSystem fileSystem = null, IFileScan fileScan = null)
         {
@@ -33,21 +32,31 @@ namespace Findary.Service
             _gitUtil = new GitUtil(options, _fileSystem);
         }
 
-        public List<string> FinalFileExtensionList { get; } = new();
-
-        public List<string> FinalFileList { get; } = new();
-
-        public List<Glob> AttributesGlobs { get; set; }
-
         public static ConcurrentQueue<string> FileExtensionQueue { get; set; } = new();
 
         public static ConcurrentQueue<string> FileQueue { get; set; } = new();
+
+        public List<Glob> AttributesGlobs { get; set; }
+
+        public List<string> FinalFileExtensionList { get; } = new();
+
+        public List<string> FinalFileList { get; } = new();
 
         public List<Glob> IgnoreGlobs { get; set; }
 
         public ThreadSafeBool IsRunning { get; set; } = new();
 
         public Stopwatch Stopwatch { get; set; } = new();
+
+        public void PrintTimeSpent()
+        {
+            if (!_options.MeasureTime)
+            {
+                return;
+            }
+            var seconds = Stopwatch.ElapsedMilliseconds * 0.001F;
+            _logger.Info("Time spent scanning: " + seconds + 's');
+        }
 
         public void Run()
         {
@@ -63,17 +72,6 @@ namespace Findary.Service
             PrintTimeSpent();
             IsRunning.Value = false;
         }
-
-        public void PrintTimeSpent()
-        {
-            if (!_options.MeasureTime)
-            {
-                return;
-            }
-            var seconds = Stopwatch.ElapsedMilliseconds * 0.001F;
-            _logger.Info("Time spent scanning: " + seconds + 's');
-        }
-
         private static (string, string) GetFormattedFileExtension(string file)
         {
             var fileExtension = Path.GetExtension(file);

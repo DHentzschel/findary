@@ -1,20 +1,20 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.IO;
+﻿using Findary.FileScan;
 using Findary.Service;
 using Moq;
 using NUnit.Framework;
+using System;
+using System.Collections.Generic;
+using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
-using Findary.FileScan;
 
 namespace Findary.Test
 {
     public class ScanServiceTest
     {
-        private Options _options;
         private readonly Mock<IFileSystem> _moqFileSystem = new();
+
+        private Options _options;
 
         [SetUp]
         public void Setup()
@@ -61,7 +61,6 @@ namespace Findary.Test
             ScanService.FileExtensionQueue.TryPeek(out var fileExtension);
             Assert.AreEqual(files[1].Split('.')[1], fileExtension);
         }
-
 
         [Test]
         public void TestRunBinaryAndTextInSubDirectories()

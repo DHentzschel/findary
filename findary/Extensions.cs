@@ -8,11 +8,19 @@ namespace Findary
     {
         public const int MaximumChars = 32767; // 2^15-1
 
-        public static List<string> ToParamList(this IEnumerable<string> input, string prefix/*, int commandLength*/)
+        public static int Count(this string input, string word)
         {
-            string GetAddendum(string item) => '"' + (prefix.Length > 0 ? prefix : string.Empty) + item + '"';
-            return input.Select(GetAddendum).ToList();
+            var result = 0;
+            var searchString = 0;
+            while ((searchString = input.IndexOf(word, searchString, StringComparison.Ordinal)) != -1)
+            {
+                searchString += word.Length;
+                ++result;
+            }
+            return result;
         }
+
+        public static bool IsGlobComment(this string input) => input.TrimStart().StartsWith('#');
 
         public static List<string> Split(this List<string> input, int commandPrefixLength)
         {
@@ -41,18 +49,10 @@ namespace Findary
             return result;
         }
 
-        public static int Count(this string input, string word)
+        public static List<string> ToParamList(this IEnumerable<string> input, string prefix/*, int commandLength*/)
         {
-            var result = 0;
-            var searchString = 0;
-            while ((searchString = input.IndexOf(word, searchString, StringComparison.Ordinal)) != -1)
-            {
-                searchString += word.Length;
-                ++result;
-            }
-            return result;
+            string GetAddendum(string item) => '"' + (prefix.Length > 0 ? prefix : string.Empty) + item + '"';
+            return input.Select(GetAddendum).ToList();
         }
-
-        public static bool IsGlobComment(this string input) => input.TrimStart().StartsWith('#');
     }
 }

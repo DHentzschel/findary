@@ -1,6 +1,6 @@
-﻿using System;
+﻿using NLog;
+using System;
 using System.IO;
-using NLog;
 
 namespace Findary.FileScan
 {

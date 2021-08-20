@@ -11,17 +11,20 @@ namespace Findary.Service
 {
     public class TrackService : IService
     {
+        private readonly GitUtil _gitUtil;
         private readonly bool _isExtension;
         private readonly ILogger _logger = LogManager.GetCurrentClassLogger();
+        private readonly IOperatingSystem _operatingSystem;
         private readonly Options _options;
-        private readonly GitUtil _gitUtil;
         private readonly ScanService _scanService;
         private readonly StatisticsDao _statistics;
         private readonly Stopwatch _triggerStopwatch = new();
-        private readonly IOperatingSystem _operatingSystem;
+
+        private int _counterTrackGlobs;
+        private int _counterTrackLater;
 
         public TrackService(Options options, bool isExtension, IOperatingSystem operatingSystem, ScanService scanService = null, StatisticsDao statistics = null,
-            IFileSystem fileSystem = null)
+                            IFileSystem fileSystem = null)
         {
             _options = options;
             _isExtension = isExtension;
@@ -32,18 +35,18 @@ namespace Findary.Service
             _operatingSystem = operatingSystem;
         }
 
-        public IProcess Process { get; set; } = new ProcessWrapper();
-
         public ThreadSafeBool IsRunning { get; set; } = new();
-
+        public IProcess Process { get; set; } = new ProcessWrapper();
         public Stopwatch Stopwatch { get; set; } = new();
-
-        private int _counterTrackLater; // = 0
-
-        private int _counterTrackGlobs; // = 0
-
-        private static int CalculateCommandLength(int commandLength, string result)
-            => commandLength + result.Length + 3;
+        public void PrintTimeSpent()
+        {
+            if (!_options.MeasureTime)
+            {
+                return;
+            }
+            var seconds = Stopwatch.ElapsedMilliseconds * 0.001F;
+            _logger.Info("Time spent tracking: " + seconds + 's');
+        }
 
         public void Run()
         {
@@ -100,23 +103,15 @@ namespace Findary.Service
             IsRunning.Value = false;
         }
 
+        private static int CalculateCommandLength(int commandLength, string result)
+                            => commandLength + result.Length + 3;
+        private string GetLfsCommand() => Path.Combine(GitUtil.GitDirectory, GitUtil.GetGitFilename(_operatingSystem)) +
+                                          " lfs track -C " + Path.GetFullPath(_options.Directory);
+
         private void TrackGlobs(List<string> items, int commandPrefixLength)
         {
             _gitUtil.TrackGlobs(_isExtension, items, _statistics, commandPrefixLength, Process);
             items.Clear();
         }
-
-        public void PrintTimeSpent()
-        {
-            if (!_options.MeasureTime)
-            {
-                return;
-            }
-            var seconds = Stopwatch.ElapsedMilliseconds * 0.001F;
-            _logger.Info("Time spent tracking: " + seconds + 's');
-        }
-
-        private string GetLfsCommand() => Path.Combine(GitUtil.GitDirectory, GitUtil.GetGitFilename(_operatingSystem)) +
-                                          " lfs track -C " + Path.GetFullPath(_options.Directory);
     }
 }

@@ -2,7 +2,6 @@ using DotNet.Globbing;
 using Findary.Abstraction;
 using Moq;
 using NUnit.Framework;
-using System;
 using System.IO.Abstractions;
 using System.Linq;
 using System.Text;
@@ -12,10 +11,9 @@ namespace Findary.Test
     public class GitUtilTest
     {
         private GitUtil _gitUtil;
-
         private Mock<IOperatingSystem> _moqOperatingSystem;
         private Mock<IOperatingSystem> _moqOperatingSystemWindows;
-        
+
         [SetUp]
         public void Setup()
         {
@@ -24,20 +22,6 @@ namespace Findary.Test
 
             _moqOperatingSystemWindows = new Mock<IOperatingSystem>();
             _moqOperatingSystemWindows.Setup(p => p.IsWindows()).Returns(true);
-        }
-
-        private static Options GetDefaultOptions()
-        {
-            return new Options
-            {
-                Directory = string.Empty,
-                IgnoreFiles = true,
-                MeasureTime = false,
-                Recursive = true,
-                Stats = true,
-                Track = true,
-                Verbose = false
-            };
         }
 
         [Test]
@@ -81,6 +65,22 @@ namespace Findary.Test
         }
 
         [Test]
+        public void TestGetGitFilenameOther()
+        {
+            var result = GitUtil.GetGitFilename(_moqOperatingSystem.Object);
+            const string expected = "git";
+            Assert.AreEqual(expected, result);
+        }
+
+        [Test]
+        public void TestGetGitFilenameWindows()
+        {
+            var result = GitUtil.GetGitFilename(_moqOperatingSystemWindows.Object);
+            const string expected = "git.exe";
+            Assert.AreEqual(expected, result);
+        }
+
+        [Test]
         public void TestGetGitIgnoreGlobs()
         {
             var resultGlobs = new[] { "*.txt", "test" };
@@ -118,27 +118,6 @@ namespace Findary.Test
         }
 
         [Test]
-        public void TestGetGitLfsArgumentsWindows()
-        {
-            _gitUtil = new GitUtil(GetDefaultOptions(), null, _moqOperatingSystemWindows.Object);
-            var result = _gitUtil.GetGitLfsArguments("test", _moqOperatingSystemWindows.Object);
-            var commandStringBuilder = new StringBuilder();
-
-            commandStringBuilder.Append("lfs ");
-            commandStringBuilder.Append("test");
-            Assert.AreEqual(commandStringBuilder.ToString(), result);
-        }
-
-        [Test]
-        public void TestGetGitLfsArgumentsOther()
-        {
-            _gitUtil = new GitUtil(GetDefaultOptions(), null, _moqOperatingSystem.Object);
-            var result = _gitUtil.GetGitLfsArguments("test", _moqOperatingSystem.Object);
-            const string expected = "test";
-            Assert.AreEqual(expected, result);
-        }
-
-        [Test]
         public void TestGetGitLfsArgumentsExecuteInDirectory()
         {
             _gitUtil = new GitUtil(GetDefaultOptions(), null, _moqOperatingSystemWindows.Object);
@@ -153,18 +132,31 @@ namespace Findary.Test
         }
 
         [Test]
-        public void TestGetGitFilenameWindows()
+        public void TestGetGitLfsArgumentsOther()
         {
-            var result = GitUtil.GetGitFilename(_moqOperatingSystemWindows.Object);
-            const string expected = "git.exe";
+            _gitUtil = new GitUtil(GetDefaultOptions(), null, _moqOperatingSystem.Object);
+            var result = _gitUtil.GetGitLfsArguments("test", _moqOperatingSystem.Object);
+            const string expected = "test";
             Assert.AreEqual(expected, result);
         }
 
         [Test]
-        public void TestGetGitFilenameOther()
+        public void TestGetGitLfsArgumentsWindows()
         {
-            var result = GitUtil.GetGitFilename(_moqOperatingSystem.Object);
-            const string expected = "git";
+            _gitUtil = new GitUtil(GetDefaultOptions(), null, _moqOperatingSystemWindows.Object);
+            var result = _gitUtil.GetGitLfsArguments("test", _moqOperatingSystemWindows.Object);
+            var commandStringBuilder = new StringBuilder();
+
+            commandStringBuilder.Append("lfs ");
+            commandStringBuilder.Append("test");
+            Assert.AreEqual(commandStringBuilder.ToString(), result);
+        }
+
+        [Test]
+        public void TestGetGitLfsFilenameOther()
+        {
+            var result = GitUtil.GetGitLfsFilename(_moqOperatingSystem.Object);
+            const string expected = "git-lfs";
             Assert.AreEqual(expected, result);
         }
 
@@ -176,12 +168,18 @@ namespace Findary.Test
             Assert.AreEqual(expected, result);
         }
 
-        [Test]
-        public void TestGetGitLfsFilenameOther()
+        private static Options GetDefaultOptions()
         {
-            var result = GitUtil.GetGitLfsFilename(_moqOperatingSystem.Object);
-            const string expected = "git-lfs";
-            Assert.AreEqual(expected, result);
+            return new Options
+            {
+                Directory = string.Empty,
+                IgnoreFiles = true,
+                MeasureTime = false,
+                Recursive = true,
+                Stats = true,
+                Track = true,
+                Verbose = false
+            };
         }
     }
 }

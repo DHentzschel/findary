@@ -2,7 +2,7 @@
   "profiles": {
     "Findary": {
       "commandName": "Project",
-      "commandLineArgs": "-rimtsv -d \"D:\\_tmp\\findary_sandbox\""
+      "commandLineArgs": "-ristv -d \"D:\\_git\\3rdparty\\gitea\""
     }
   }
 }

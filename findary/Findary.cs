@@ -13,6 +13,8 @@ namespace Findary
 {
     public class Findary
     {
+        private const string VersionSuffix = "-pre1";
+
         private readonly ILogger _logger = LogManager.GetCurrentClassLogger();
         private readonly IOperatingSystem _operatingSystem = new OperatingSystemWrapper();
         private readonly Options _options;
@@ -20,7 +22,6 @@ namespace Findary
         private readonly Stopwatch _stopwatch = new();
 
         private LogLevel _logLevel;
-        private string _versionSuffix = "-pre1";
 
         public Findary(Options options)
         {
@@ -49,7 +50,7 @@ namespace Findary
 
         private static void PrintHelpScreen() => Parser.Default.ParseArguments<Options>(new[] { "--help" });
 
-        private static void WaitUntilEnd(ScanService scanService, TrackService trackService)
+        private static void WaitUntilEnd(IService scanService, IService trackService)
         {
             while (scanService.IsRunning.Value || trackService.IsRunning.Value)
             {
@@ -88,7 +89,7 @@ namespace Findary
             var assembly = Assembly.GetEntryAssembly();
             var version = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
             var appName = GetType().Assembly.GetName();
-            var message = appName.Name + ' ' + version + _versionSuffix;
+            var message = appName.Name + ' ' + version + VersionSuffix;
             if (options.Verbose || _logLevel.Name == LogLevel.Debug.Name)
             {
                 _logger.Debug(message);

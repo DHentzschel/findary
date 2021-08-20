@@ -13,6 +13,12 @@ namespace Findary
         [Option('m', "measure", HelpText = "Set whether measured time should be printed")]
         public bool MeasureTime { get; set; }
 
+        [Option('h', "help", HelpText = "Print this help text")]
+        public bool PrintHelp { get; set; }
+
+        [Option('V', "version", HelpText = "Print Findary version")]
+        public bool PrintVersion { get; set; }
+
         [Option('r', "recursive", HelpText = "Set whether directory should be processed recursively")]
         public bool Recursive { get; set; }
 
@@ -24,11 +30,5 @@ namespace Findary
 
         [Option('v', "verbose", HelpText = "Set whether the output should be verbose")]
         public bool Verbose { get; set; }
-
-        [Option('V', "version", HelpText = "Print Findary version")]
-        public bool PrintVersion { get; set; }
-
-        [Option('h', "help", HelpText = "Print this help text")]
-        public bool PrintHelp { get; set; }
     }
 }
