@@ -4,7 +4,7 @@ namespace Findary
 {
     public class Options
     {
-        [Option('d', "directory", HelpText = "Set directory to process", Required = true)]
+        [Option('d', "directory", HelpText = "Set directory to process")]
         public string Directory { get; set; }
 
         [Option('i', "ignoreFiles", HelpText = "Set whether globs from .gitignore should be respected. The root's directory should contain a file .gitignore")]
