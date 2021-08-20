@@ -19,7 +19,7 @@ namespace Findary.Service
         private readonly StatisticsDao _statistics;
         private readonly Stopwatch _triggerStopwatch = new Stopwatch();
 
-        public TrackService(Options options, bool isExtension, ScanService scanService = null, StatisticsDao statistics = null,
+        public TrackService(Options options, bool isExtension, IOperatingSystem operatingSystem, ScanService scanService = null, StatisticsDao statistics = null,
             IFileSystem fileSystem = null)
         {
             _options = options;
