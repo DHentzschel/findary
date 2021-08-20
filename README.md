@@ -23,10 +23,10 @@ To differ between "real" binaries and encoded files, the following character enc
 
 ### Installation
 1. Check the latest zip file from the release section  And choose the right zip link e.g.  
-  - `https://github.com/DHentzschel/findary/releases/download/<version>/findary-<version>-windows-amd64.zip`
-  - `https://github.com/DHentzschel/findary/releases/download/<version>/findary-<version>-windows-386.zip`
-  - `https://github.com/DHentzschel/findary/releases/download/<version>/findary-<version>-linux-386.zip`
-  - `https://github.com/DHentzschel/findary/releases/download/<version>/findary-<version>-linux-amd64.zip`
+  - `https://github.com/DHentzschel/findary/releases/download/<version>/findary-<version>-dotnet5-windows-amd64.zip`
+  - `https://github.com/DHentzschel/findary/releases/download/<version>/findary-<version>-dotnet5-windows-386.zip`
+  - `https://github.com/DHentzschel/findary/releases/download/<version>/findary-<version>-dotnet5-linux-386.zip`
+  - `https://github.com/DHentzschel/findary/releases/download/<version>/findary-<version>-dotnet5-linux-amd64.zip`
 2. Download and extract it and move the folder content to the desired location.  
 3. Add the path to `PATH` variable
 
@@ -37,9 +37,10 @@ To differ between "real" binaries and encoded files, the following character enc
 Do Step 1 and 2, it is only required once to add the path to the `PATH` variable
 
 ## Usage
-`findary [-directory/-d <path>] [--track/-t] [--recursive/-r] [--measure/-m] [--verbose/-v] [--version] [--help]`
+If not passed, `--directory` is set to the current directory
+`findary [--directory/-d <path>] [--track/-t] [--recursive/-r] [--measure/-m] [--verbose/-v] [--version] [--help]`
 
-*Help Text*
+*The following help Text might*
 
     findary <version>
     Copyright (C) 2021 findary
