@@ -8,11 +8,11 @@
 
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.8.0" />
-    <PackageReference Include="DotNet.Glob" Version="3.1.0" />
-    <PackageReference Include="Moq" Version="4.15.2" />
-    <PackageReference Include="NLog" Version="4.7.5" />
+    <PackageReference Include="DotNet.Glob" Version="3.1.2" />
+    <PackageReference Include="Moq" Version="4.16.1" />
+    <PackageReference Include="NLog" Version="4.7.11" />
     <PackageReference Include="System.Diagnostics.Abstractions" Version="1.0.9" />
-    <PackageReference Include="System.IO.Abstractions" Version="13.2.2" />
+    <PackageReference Include="System.IO.Abstractions" Version="13.2.43" />
   </ItemGroup>
 
 </Project>
