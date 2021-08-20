@@ -2,7 +2,7 @@
   "profiles": {
     "Findary": {
       "commandName": "Project",
-      "commandLineArgs": "-rimtsv -d \"D:\\_git\\biosphere\\themother\""
+      "commandLineArgs": "-rimtsv -d \"D:\\_tmp\\findary_sandbox\""
     }
   }
 }

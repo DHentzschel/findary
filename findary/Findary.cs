@@ -1,11 +1,10 @@
-﻿using System;
-using System.Diagnostics.Abstractions;
-using System.Threading;
-using Findary.Abstraction;
-using Findary.Service;
+﻿using Findary.Service;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
+using System;
+using System.Threading;
+using Findary.Abstraction;
 using Stopwatch = System.Diagnostics.Stopwatch;
 
 namespace Findary
@@ -41,24 +40,24 @@ namespace Findary
             scanThread.Start();
 
             _stopwatch.Restart();
-
-            var trackFileService = new TrackService(_options, false, scanService, _statistics);
+            var operatingSystem = new OperatingSystemWrapper();
+            var trackFileService = new TrackService(_options, false, operatingSystem, scanService, _statistics);
             var trackFileThread = new Thread(trackFileService.Run);
             trackFileThread.Start();
 
-            var trackFileExtensionService = new TrackService(_options, true, scanService, _statistics);
+            var trackFileExtensionService = new TrackService(_options, true, operatingSystem, scanService, _statistics);
             trackFileExtensionService.Run();
 
             TrackService trackSupportService;
             if (!ScanService.FileQueue.IsEmpty)
             {
-                trackSupportService = new TrackService(_options, false, scanService, _statistics);
+                trackSupportService = new TrackService(_options, false, operatingSystem, scanService, _statistics);
                 trackSupportService.Run();
             }
 
             if (ScanService.FileExtensionQueue.IsEmpty)
             {
-                trackSupportService = new TrackService(_options, false, scanService, _statistics);
+                trackSupportService = new TrackService(_options, false, operatingSystem, scanService, _statistics);
                 trackSupportService.Run();
             }
 

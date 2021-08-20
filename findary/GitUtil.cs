@@ -13,7 +13,7 @@ namespace Findary
 {
     public class GitUtil
     {
-        private readonly ILogger _logger = LogManager.GetCurrentClassLogger();
+        private static readonly ILogger Logger = LogManager.GetCurrentClassLogger();
         private readonly Options _options;
 
         private readonly IFileSystem _fileSystem;
@@ -31,9 +31,11 @@ namespace Findary
             //_isGitAvailable = IsGitAvailable();
         }
 
-        public string GetGitFilename() => "git" + GetPlatformSpecific(".exe", string.Empty);
+        public static string GitDirectory { get; } = GetGitDirectory(Logger, new FileSystem(), new OperatingSystemWrapper());
 
-        public string GetGitLfsFilename() => GetGitFilename() + GetPlatformSpecific(string.Empty, "-lfs");
+        public static string GetGitFilename(IOperatingSystem operatingSystem) => "git" + GetPlatformSpecific(".exe", string.Empty, operatingSystem);
+
+        public static string GetGitLfsFilename(IOperatingSystem operatingSystem) => GetGitFilename(operatingSystem) + GetPlatformSpecific(string.Empty, "-lfs", operatingSystem);
 
         public List<Glob> GetGitAttributesGlobs()
         {
@@ -75,7 +77,7 @@ namespace Findary
             return result;
         }
 
-        public string GetGitLfsArguments(string args, bool executeInRepository = false)
+        public string GetGitLfsArguments(string args, IOperatingSystem operatingSystem, bool executeInRepository = false)
         {
             var result = string.Empty;
             if (executeInRepository)
@@ -83,7 +85,7 @@ namespace Findary
                 result = "-C " + _options.Directory + ' ';
             }
 
-            result += GetPlatformSpecific("lfs ", string.Empty) + args;
+            result += GetPlatformSpecific("lfs ", string.Empty, operatingSystem) + args;
             return result;
         }
 
@@ -92,15 +94,15 @@ namespace Findary
             if (_process != process)
             {
                 _process = process;
-                _isGitAvailable = IsGitAvailable(process);
+                _isGitAvailable = IsGitAvailable(process, _operatingSystem);
             }
-            if (!_options.Track || !_isGitAvailable || !InitGitLfs(process))
+            if (!_options.Track || !_isGitAvailable || !InitGitLfs(process, _operatingSystem))
             {
                 if (_options.Track && _isFirstCall)
                 {
                     _isFirstCall = false;
                     var addendum = !_isGitAvailable ? "git is not available" : "lfs could not be initialized";
-                    _logger.Error("Could not track files - " + addendum);
+                    Logger.Error("Could not track files - " + addendum);
                 }
                 return;
             }
@@ -113,10 +115,10 @@ namespace Findary
             var prefix = isExtension ? "*." : string.Empty;
             var parameters = globs.ToParamList(prefix);
             var parameterLists = parameters.Split(commandPrefixLength);
-            parameterLists.ForEach(p => TrackFiles(p, statistics));
+            parameterLists.ForEach(p => TrackFiles(p, statistics, _operatingSystem));
         }
 
-        public string GetGitDirectory()
+        public static string GetGitDirectory(ILogger logger, IFileSystem fileSystem, IOperatingSystem operatingSystem)
         {
             var pathVariable = Environment.GetEnvironmentVariable("path");
             if (pathVariable == null)
@@ -127,8 +129,9 @@ namespace Findary
             var directories = pathVariable.Split(';');
             foreach (var directory in directories)
             {
-                var filePath = Path.Combine(directory, GetGitFilename());
-                if (_fileSystem.File.Exists(filePath))
+                var filePath = Path.Combine(directory, GetGitFilename(operatingSystem));
+                logger.Debug(nameof(GetGitDirectory) + ": if (_fileSystem.File.Exists(" + filePath + "))");
+                if (fileSystem.File.Exists(filePath))
                 {
                     return directory;
                 }
@@ -136,25 +139,27 @@ namespace Findary
             return null;
         }
 
-        private string GetPlatformSpecific(string windows, string other) => _operatingSystem.IsWindows() ? windows : other;
+        private static string GetPlatformSpecific(string windows, string other, IOperatingSystem operatingSystem) => operatingSystem.IsWindows() ? windows : other;
 
         private List<string> GetFileLines(string directory, string filename)
         {
             var result = new List<string>();
             var filePath = Path.Combine(directory, filename);
+            Logger.Debug(nameof(GetFileLines) + ": if (!_fileSystem.File.Exists(" + filePath + "))");
             if (!_fileSystem.File.Exists(filePath))
             {
-                _logger.Debug("Could not find file " + filename);
+                Logger.Debug("Could not find file " + filename);
                 return result;
             }
 
             try
             {
+                Logger.Debug(nameof(GetFileLines) + ": _fileSystem.File.ReadAllLines(" + filePath + ").ToList();");
                 result = _fileSystem.File.ReadAllLines(filePath).ToList();
             }
             catch (Exception e)
             {
-                _logger.Warn("Could not read file " + filename + ": " + e.Message);
+                Logger.Warn("Could not read file " + filename + ": " + e.Message);
                 return result;
             }
 
@@ -167,7 +172,7 @@ namespace Findary
         private List<string> GetGitIgnoreLines()
             => !_options.IgnoreFiles ? new List<string>() : GetFileLines(_options.Directory, ".gitignore");
 
-        private string GetNewProcessOutput(string filename, string arguments, IProcess process = null)
+        private static string GetNewProcessOutput(string filename, string arguments, IProcess process = null)
         {
             process ??= new ProcessWrapper();
             var startInfo = new ProcessStartInfo
@@ -185,7 +190,7 @@ namespace Findary
             }
             catch (Exception e)
             {
-                _logger.Error("Could not start process " + filename + ". " + e.Message);
+                Logger.Error("Could not start process " + filename + ". " + e.Message);
                 return null;
             }
 
@@ -198,7 +203,7 @@ namespace Findary
                 }
                 catch (Exception e)
                 {
-                    _logger.Error("Could not redirect standard output. " + e.Message);
+                    Logger.Error("Could not redirect standard output. " + e.Message);
                 }
             }
 
@@ -208,38 +213,38 @@ namespace Findary
             {
                 return output;
             }
-            _logger.Error("Access is probably denied. Exit code " + process.ExitCode + " (try again with admin privileges)");
+            Logger.Error("Access is probably denied. Exit code " + process.ExitCode + " (try again with admin privileges)");
             return null;
         }
 
-        private bool InitGitLfs(IProcess process)
+        private bool InitGitLfs(IProcess process, IOperatingSystem operatingSystem)
         {
-            var output = GetNewProcessOutput(GetGitLfsFilename(), GetGitLfsArguments("install", true), process);
+            var output = GetNewProcessOutput(GetGitLfsFilename(operatingSystem), GetGitLfsArguments("install", operatingSystem, true), process);
             return output?.EndsWith("Git LFS initialized.") == true;
         }
 
-        private bool IsGitAvailable(IProcess process)
+        private bool IsGitAvailable(IProcess process, IOperatingSystem operatingSystem)
         {
             const string arguments = "version";
-            return IsGitInstalled(arguments, process) && IsGitLfsInstalled(arguments, process);
+            return IsGitInstalled(arguments, process, operatingSystem) && IsGitLfsInstalled(arguments, process, operatingSystem);
         }
 
-        private bool IsGitInstalled(string arguments, IProcess process) => IsInstalled(GetGitFilename(), arguments, "git version", process);
+        private bool IsGitInstalled(string arguments, IProcess process, IOperatingSystem operatingSystem) => IsInstalled(GetGitFilename(operatingSystem), arguments, "git version", process);
 
-        private bool IsGitLfsInstalled(string arguments, IProcess process) => IsInstalled(GetGitLfsFilename(), GetGitLfsArguments(arguments), "git-lfs/", process);
+        private bool IsGitLfsInstalled(string arguments, IProcess process, IOperatingSystem operatingSystem) => IsInstalled(GetGitLfsFilename(operatingSystem), GetGitLfsArguments(arguments, operatingSystem), "git-lfs/", process);
 
-        private bool IsInstalled(string filename, string arguments, string outputPrefix, IProcess process)
+        private static bool IsInstalled(string filename, string arguments, string outputPrefix, IProcess process)
         {
             var output = GetNewProcessOutput(filename, arguments, process);
             if (output?.StartsWith(outputPrefix) == true)
             {
                 return true;
             }
-            _logger.Warn("Could not detect a installed version of " + filename);
+            Logger.Warn("Could not detect a installed version of " + filename);
             return false;
         }
 
-        private Glob ParseGlob(string line, bool isGitIgnore)
+        private static Glob ParseGlob(string line, bool isGitIgnore)
         {
             var lineSplit = line.Split(' ');
             if (!isGitIgnore && lineSplit.Length < 5)
@@ -265,14 +270,14 @@ namespace Findary
             return Glob.Parse(resultString);
         }
 
-        private void TrackFiles(string arguments, StatisticsDao statistics)
+        private void TrackFiles(string arguments, StatisticsDao statistics, IOperatingSystem operatingSystem)
         {
             if (arguments.Length == 0)
             {
                 return;
             }
 
-            var output = GetNewProcessOutput(GetGitLfsFilename(), GetGitLfsArguments("track " + arguments, true));
+            var output = GetNewProcessOutput(GetGitLfsFilename(operatingSystem), GetGitLfsArguments("track " + arguments, operatingSystem, true));
             if (output == null)
             {
                 return;
@@ -287,7 +292,7 @@ namespace Findary
                 statistics.AlreadySupported.Value += (uint)alreadySupportedCount;
                 return;
             }
-            _logger.Error("Could not track files. Process output is: " + output);
+            Logger.Error("Could not track files. Process output is: " + output);
         }
     }
 }

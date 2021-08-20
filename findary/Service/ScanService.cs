@@ -1,5 +1,4 @@
 ﻿using DotNet.Globbing;
-using Findary.Abstraction;
 using NLog;
 using System;
 using System.Collections.Concurrent;
@@ -8,42 +7,47 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
+using Findary.FileScan;
 
 namespace Findary.Service
 {
     public class ScanService : IService
     {
-        private readonly GitUtil _gitUtil;
         private readonly ILogger _logger = LogManager.GetCurrentClassLogger();
+        private readonly StatisticsDao _statistics;
+        private readonly IFileScan _fileScan;
         private readonly Options _options;
+        private readonly IFileSystem _fileSystem;
+        private readonly GitUtil _gitUtil;
+
         private bool _hasReachedGitDir;
 
-        private readonly StatisticsDao _statistics;
 
-        public ScanService(Options options, StatisticsDao statistics = null, IFileSystem fileSystem = null)
+        public ScanService(Options options, StatisticsDao statistics = null, IFileSystem fileSystem = null, IFileScan fileScan = null)
         {
             _options = options;
             _statistics = statistics ?? new StatisticsDao();
-            var fileSystemObject = fileSystem ?? new FileSystem();
-            _gitUtil = new GitUtil(options, fileSystemObject);
+            _fileScan = fileScan ?? new FileScan.FileScan();
+            _fileScan.Statistics = _statistics;
+            _fileSystem = fileSystem ?? new FileSystem();
+            _gitUtil = new GitUtil(options, _fileSystem);
         }
 
-        public List<string> FinalFileExtensionList { get; } = new List<string>();
+        public List<string> FinalFileExtensionList { get; } = new();
 
-        public List<string> FinalFileList { get; } = new List<string>();
+        public List<string> FinalFileList { get; } = new();
 
         public List<Glob> AttributesGlobs { get; set; }
 
-        public static ConcurrentQueue<string> FileExtensionQueue { get; set; } = new ConcurrentQueue<string>();
+        public static ConcurrentQueue<string> FileExtensionQueue { get; set; } = new();
 
-        public static ConcurrentQueue<string> FileQueue { get; set; } = new ConcurrentQueue<string>();
+        public static ConcurrentQueue<string> FileQueue { get; set; } = new();
 
         public List<Glob> IgnoreGlobs { get; set; }
 
+        public ThreadSafeBool IsRunning { get; set; } = new();
 
-        public ThreadSafeBool IsRunning { get; set; } = new ThreadSafeBool();
-
-        public Stopwatch Stopwatch { get; set; } = new Stopwatch();
+        public Stopwatch Stopwatch { get; set; } = new();
 
         public void Run()
         {
@@ -81,54 +85,12 @@ namespace Findary.Service
             var result = Path.GetFullPath(filePath).Replace(Path.GetFullPath(_options.Directory), string.Empty, StringComparison.CurrentCultureIgnoreCase);
             if (result.StartsWith('/') || result.StartsWith('\\'))
             {
-                result = result.Substring(1);
+                result = result[1..];
             }
             return result;
         }
 
         private bool IsAlreadySupported(string file) => _options.Track && AttributesGlobs.Any(p => p.IsMatch(file));
-
-        private bool IsFileBinary(string filePath)
-        {
-            FileStream fileStream;
-            try
-            {
-                fileStream = File.OpenRead(filePath);
-            }
-            catch (Exception e)
-            {
-                _logger.Warn("Could not read file " + filePath + ": " + e.Message);
-                if (e is UnauthorizedAccessException)
-                {
-                    ++_statistics.Files.AccessDenied.Value;
-                }
-                return false;
-            }
-
-            var bytes = new byte[1024];
-            int bytesRead;
-            var isFirstBlock = true;
-            while ((bytesRead = fileStream.Read(bytes, 0, bytes.Length)) > 0)
-            {
-                if (isFirstBlock)
-                {
-                    ++_statistics.Files.Processed.Value;
-                    if (bytes.HasBom())
-                    {
-                        return false;
-                    }
-                }
-
-                var zeroIndex = Array.FindIndex(bytes, p => p == '\0');
-                if (zeroIndex > -1 && zeroIndex < bytesRead)
-                {
-                    return true;
-                }
-
-                isFirstBlock = false;
-            }
-            return false;
-        }
 
         private bool IsIgnored(string file) => _options.IgnoreFiles && IgnoreGlobs.Any(p => p.IsMatch(file));
 
@@ -171,7 +133,7 @@ namespace Findary.Service
             {
                 return;
             }
-            if (!Directory.Exists(directory))
+            if (!_fileSystem.Directory.Exists(directory))
             {
                 _logger.Warn("Could not find directory: " + directory);
                 return;
@@ -180,7 +142,7 @@ namespace Findary.Service
             string[] directories;
             try
             {
-                directories = Directory.EnumerateDirectories(directory).ToArray();
+                directories = _fileSystem.Directory.EnumerateDirectories(directory).ToArray();
             }
             catch (Exception e)
             {
@@ -216,7 +178,7 @@ namespace Findary.Service
             string[] files;
             try
             {
-                files = Directory.EnumerateFiles(directory).ToArray();
+                files = _fileSystem.Directory.EnumerateFiles(directory).ToArray();
             }
             catch (Exception e)
             {
@@ -246,7 +208,7 @@ namespace Findary.Service
 
                 if (formattedExtension == null) // File has no extension
                 {
-                    if (IsFileBinary(file))
+                    if (_fileScan.IsFileBinary(file))
                     {
                         relativePath = relativePath.Replace('\\', '/');
                         relativePath = relativePath.StartsWith('/') ? relativePath[1..] : relativePath;
@@ -254,8 +216,10 @@ namespace Findary.Service
                         {
                             continue;
                         }
+
+                        var absolutePath = Path.Combine(_options.Directory, relativePath).Replace('\\', '/'); ;
                         FileQueue.Enqueue(relativePath);
-                        FinalFileList.Add(relativePath);
+                        FinalFileList.Add(absolutePath);
                     }
                     continue;
                 }
@@ -273,7 +237,7 @@ namespace Findary.Service
         }
 
         private bool ShouldBeAdded(string fileExtension, string file)
-            => fileExtension != null && !FinalFileExtensionList.Contains(fileExtension) && IsFileBinary(file);
+            => fileExtension != null && !FinalFileExtensionList.Contains(fileExtension) && _fileScan.IsFileBinary(file);
 
         private void SortResults()
         {
