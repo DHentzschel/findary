@@ -27,6 +27,15 @@ namespace Findary
 
         public void Run()
         {
+            if (_options.PrintVersion)
+            {
+                PrintVersion(_options);
+                if (_options.Directory == default)
+                {
+                    return;
+                }
+            }
+
             var path = @"C:\Program Files\Git\cmd";
             var variable = Environment.GetEnvironmentVariable("path");
 

@@ -24,5 +24,8 @@ namespace Findary
 
         [Option('v', "verbose", HelpText = "Set whether the output should be verbose")]
         public bool Verbose { get; set; }
+
+        [Option('V', "version", HelpText = "Print Findary version")]
+        public bool PrintVersion { get; set; }
     }
 }
