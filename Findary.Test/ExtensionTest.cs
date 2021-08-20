@@ -18,7 +18,9 @@ namespace Findary.Test
             Assert.IsTrue(_list1.Count == _list2.Count);
             for (var i = 0; i < _list1.Count; ++i)
             {
-                Assert.IsTrue(_list1[i].AreEqual(_list2[i]));
+                var left = _list1[i];
+                var right = _list2[i];
+                Assert.IsTrue(left.AreEqual(right));
             }
         }
 
