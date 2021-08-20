@@ -1,11 +1,9 @@
-﻿using CommandLine;
-using Findary.Abstraction;
+﻿using Findary.Abstraction;
 using Findary.Service;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
-using System;
-using System.Reflection;
+using System.IO;
 using System.Threading;
 using Stopwatch = System.Diagnostics.Stopwatch;
 
@@ -13,8 +11,6 @@ namespace Findary
 {
     public class Findary
     {
-        private const string VersionSuffix = "-pre1";
-
         private readonly ILogger _logger = LogManager.GetCurrentClassLogger();
         private readonly IOperatingSystem _operatingSystem = new OperatingSystemWrapper();
         private readonly Options _options;
@@ -31,17 +27,11 @@ namespace Findary
 
         public void Run()
         {
-            if (_options.PrintVersion)
-            {
-                PrintVersion(_options);
-                return;
-            }
-
-            _options.Directory ??= AppDomain.CurrentDomain.BaseDirectory;
+            _options.Directory ??= Directory.GetCurrentDirectory();
 
             StartServices();
         }
-        
+
         private static void WaitUntilEnd(IService scanService, IService trackService)
         {
             while (scanService.IsRunning.Value || trackService.IsRunning.Value)
@@ -74,22 +64,6 @@ namespace Findary
                           _statistics.AlreadySupported.Value +
                           " already supported)";
             _logger.Log(logLevel, message);
-        }
-
-        private void PrintVersion(Options options)
-        {
-            var assembly = Assembly.GetEntryAssembly();
-            var version = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
-            var appName = GetType().Assembly.GetName();
-            var message = appName.Name + ' ' + version + VersionSuffix;
-            if (options.Verbose || _logLevel.Name == LogLevel.Debug.Name)
-            {
-                _logger.Debug(message);
-            }
-            else
-            {
-                Console.WriteLine(message);
-            }
         }
 
         private ScanService StartScanService()
