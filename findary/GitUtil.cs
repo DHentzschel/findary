@@ -8,6 +8,7 @@ using System.Diagnostics.Abstractions;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace Findary
 {
@@ -21,6 +22,7 @@ namespace Findary
         private readonly IOperatingSystem _operatingSystem;
         private bool _isGitAvailable;
         private bool _isFirstCall = true;
+        private Regex _errorRegex = new Regex("Error.*(\\n|$)", RegexOptions.Compiled);
 
         public GitUtil(Options options, IFileSystem fileSystem = null, /*IProcess process = null,*/ IOperatingSystem operatingSystem = null)
         {
@@ -278,6 +280,16 @@ namespace Findary
             if (output == null)
             {
                 return;
+            }
+
+            var errorMatch = _errorRegex.Matches(output).ToArray();
+            Logger.Info(GetGitLfsFilename(_operatingSystem) + " track errors");
+            if (_errorRegex.IsMatch(output))
+            {
+                foreach (var error in errorMatch)
+                {
+                    Logger.Info(error.Value);
+                }
             }
 
             var trackingCount = output.Count("Tracking \"");
