@@ -9,6 +9,7 @@ using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace Findary
 {
@@ -35,6 +36,8 @@ namespace Findary
             //_isGitAvailable = IsGitAvailable();
         }
 
+        public static string GitBareFileName => "git";
+
         public static string GitDirectory { get; } = GetGitDirectory(Logger, new FileSystem(), new OperatingSystemWrapper());
 
         public static string GetGitDirectory(ILogger logger, IFileSystem fileSystem, IOperatingSystem operatingSystem)
@@ -57,7 +60,7 @@ namespace Findary
             return null;
         }
 
-        public static string GetGitFilename(IOperatingSystem operatingSystem) => "git" + GetPlatformSpecific(".exe", string.Empty, operatingSystem);
+        public static string GetGitFilename(IOperatingSystem operatingSystem) => GitBareFileName + GetPlatformSpecific(".exe", string.Empty, operatingSystem);
 
         public static string GetGitLfsFilename(IOperatingSystem operatingSystem) => GetGitFilename(operatingSystem) + GetPlatformSpecific(string.Empty, "-lfs", operatingSystem);
 
@@ -176,6 +179,11 @@ namespace Findary
                 }
             }
 
+            while (!process.HasExited)
+            {
+                Thread.Sleep(3);
+            }
+            
             var exitCode = process.ExitCode;
             process.Close();
             if (exitCode != 2)

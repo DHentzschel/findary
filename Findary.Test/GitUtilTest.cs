@@ -68,7 +68,7 @@ namespace Findary.Test
         public void TestGetGitFilenameOther()
         {
             var result = GitUtil.GetGitFilename(_moqOperatingSystem.Object);
-            const string expected = "git";
+            var expected = GitUtil.GitBareFileName;
             Assert.AreEqual(expected, result);
         }
 
