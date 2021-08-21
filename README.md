@@ -7,10 +7,10 @@ To differ between "real" binaries and encoded files, the following character enc
   - UTF-1
   - UTF-7
   - UTF-8
-  - UTF-16Be
-  - UTF-16Le
-  - UTF-32Be
-  - UTF-32Le
+  - UTF-16BE
+  - UTF-16LE
+  - UTF-32BE
+  - UTF-32LE
   - UTF-EBCDIC
   - BOCU-1
   - SCSU
@@ -19,14 +19,13 @@ To differ between "real" binaries and encoded files, the following character enc
 
 ### Requirements  
 
-- .NET `5` or higher must be installed to run the program  
+- .NET `5` or higher must be installed to run the program (or download `-full` zip file)
 
 ### Installation
 1. Check the latest zip file from the release section  And choose the right zip link e.g.  
-  - `https://github.com/DHentzschel/findary/releases/download/<version>/findary-<version>-dotnet5-windows-amd64.zip`
-  - `https://github.com/DHentzschel/findary/releases/download/<version>/findary-<version>-dotnet5-windows-386.zip`
-  - `https://github.com/DHentzschel/findary/releases/download/<version>/findary-<version>-dotnet5-linux-386.zip`
-  - `https://github.com/DHentzschel/findary/releases/download/<version>/findary-<version>-dotnet5-linux-amd64.zip`
+  
+    `https://github.com/DHentzschel/findary/releases/download/1.0/findary-1.0-dotnet5-windows-amd64.zip`
+  
 2. Download and extract it and move the folder content to the desired location.  
 3. Add the path to `PATH` variable
 
@@ -38,9 +37,13 @@ Do Step 1 and 2, it is only required once to add the path to the `PATH` variable
 
 ## Usage
 If not passed, `--directory` is set to the current directory
+
+#### Command line interface
+Currently, there is no graphical user interface to use this program.
+
 `findary [--directory/-d <path>] [--track/-t] [--recursive/-r] [--measure/-m] [--verbose/-v] [--version] [--help]`
 
-*The following help Text might*
+*The following help text can be printed (via `--help`):*  
 
     findary <version>
     Copyright (C) 2021 findary
@@ -53,4 +56,3 @@ If not passed, `--directory` is set to the current directory
       -v, --verbose        Set whether the output should be verbose
       --help               Display this help screen.
       --version            Display version information.
-
