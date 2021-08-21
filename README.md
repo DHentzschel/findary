@@ -27,7 +27,7 @@ The following options are available through arguments:
 
 The following help text can be printed *(via `--help`)*:
 
-    findary 1.0.0.0
+    findary 1.0.0
     Copyright (C) 2021 findary
       -d, --directory      Set directory to process
       -i, --ignoreFiles    Set whether globs from .gitignore should be respected. The root's directory should contain a file .gitignore

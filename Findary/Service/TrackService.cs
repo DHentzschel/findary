@@ -105,7 +105,7 @@ namespace Findary.Service
 
         private static int CalculateCommandLength(int commandLength, string result)
                             => commandLength + result.Length + 3;
-        private string GetLfsCommand() => Path.Combine(GitUtil.GitDirectory, GitUtil.GetGitFilename(_operatingSystem)) +
+        private string GetLfsCommand() => Path.Combine(GitUtil.GitDirectory ?? GitUtil.GitBareFileName, GitUtil.GetGitFilename(_operatingSystem)) +
                                           " lfs track -C " + Path.GetFullPath(_options.Directory);
 
         private void TrackGlobs(List<string> items, int commandPrefixLength)
