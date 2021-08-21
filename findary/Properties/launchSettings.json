@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "Findary": {
-      "commandName": "Project",
-      "commandLineArgs": "-ristv -d \"D:\\_git\\3rdparty\\gitea\""
-    }
-  }
-}

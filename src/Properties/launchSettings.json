@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Findary": {
+      "commandName": "Project",
+      "commandLineArgs": "D:\\_git\\tooling\\findary\\Findary\\bin\\Release\\net5.0\\linux-x64\\"
+    }
+  }
+}
