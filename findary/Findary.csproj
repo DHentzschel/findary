@@ -4,8 +4,13 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
     <AssemblyName>findary</AssemblyName>
+    <Platforms>AnyCPU;x86;ARM32;ARM64</Platforms>
   </PropertyGroup>
-
+  
+  <PropertyGroup>
+    <RuntimeIdentifiers>win10-x64;linux-x64</RuntimeIdentifiers>
+  </PropertyGroup>
+ 
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.8.0" />
     <PackageReference Include="DotNet.Glob" Version="3.1.2" />
