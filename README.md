@@ -36,12 +36,14 @@ To differ between "real" binaries and encoded files, the following character enc
 Do Step 1 and 2, it is only required once to add the path to the `PATH` variable
 
 ## Usage
-If not passed, `--directory` is set to the current directory
-
-#### Command line interface
+If not passed, `--directory` is set to the current directory.  
 Currently, there is no graphical user interface to use this program.
 
+#### Command line interface
+The following options are available through arguments:  
+
 `findary [--directory/-d <path>] [--track/-t] [--recursive/-r] [--measure/-m] [--verbose/-v] [--version] [--help]`
+
 
 *The following help text can be printed (via `--help`):*  
 
