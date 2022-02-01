@@ -1,7 +1,7 @@
 # Findary - track all binaries in your repo
 In short, this tool is made for finding and tracking binaries in (large) git repos.  
-Currently, the function to check whether a file is binary is to check for `\0` (`NUL` byte) occurrence.  
-To differ between "real" binaries and encoded files, the following character encodings are detected using its [BOM](https://en.wikipedia.org/wiki/Byte_order_mark):
+The function to check whether a file is binary just checks for `\0` (`NUL` byte) occurrence.  
+To differ between "real" binaries and encoded text files, the following character encodings are detected using its [BOM](https://en.wikipedia.org/wiki/Byte_order_mark):
 
   - UTF-1
   - UTF-7
