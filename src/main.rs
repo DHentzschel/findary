@@ -5,9 +5,10 @@ use structopt::StructOpt;
 
 // use walkdir::WalkDir;
 use opt::Opt;
-use crate::bom::Boms;
 
+use crate::bom::Boms;
 use crate::file::File;
+use crate::filetype::FileType;
 use crate::filetype::FileType::Binary;
 
 mod opt;
@@ -40,10 +41,18 @@ fn start(opt: &Opt) {
 
     for mut file in files {
         // TODO implement
-        let is_binary = file.is_binary_type(&mut boms, opt.verbose);
-        if is_binary {
-            println!("File is binary");
+        let mut file_type: FileType = file.get_file_type(&mut boms, opt.verbose);
+        file.file_type = file_type;
+        let file_type: String;
+
+        match file.file_type {
+            FileType::None => file_type = "none".to_string(),
+            FileType::Text => file_type = "text".to_string(),
+            FileType::EncodedText => file_type = "encoded text".to_string(),
+            FileType::Binary => file_type = "binary".to_string(),
         }
-        println!("File {}, is_binary {}, matching_glob {}", file.path, is_binary, file.matching_glob);
+
+        println!("File is a {} file", file_type);
+        println!("File {}, file_type {}, matching_glob {}", file.path, file_type, file.matching_glob);
     }
 }

@@ -33,13 +33,13 @@ impl File {
         }
     }
 
-    pub fn is_binary_type(&mut self, boms: &mut Boms,  verbose: bool) -> bool {
+    pub fn get_file_type(&mut self, boms: &mut Boms, verbose: bool) -> FileType {
         self.matching_glob = File::get_matching_glob();
         if !self.exists() {
             if verbose {
                 println!("{} - no such file or directory", self.path);
             }
-            return false;
+            return FileType::None;
         }
         let mut file_stream = std::fs::File::open(self.path.to_string()).unwrap();
         let mut buffer = [0; 10];
@@ -66,13 +66,11 @@ impl File {
             contains_null_byte = File::contains_null_byte(&mut buffer);
 
             if contains_null_byte {
-                self.file_type = FileType::Binary;
-                return true;
+                return FileType::Binary;
             }
         }
 
-        self.file_type = FileType::Text;
-        return false;
+        return FileType::Text;
     }
 
     pub fn init_boms(boms: &mut Boms) {
@@ -120,7 +118,7 @@ impl File {
             key: "UTF-EBCDIC".to_string(),
             value: [0xDD, 0x73, 0x66, 0x73].to_vec(),
         });
-        println!("Added {} boms", boms.list.len());
+        println!("Searching for {} BOMs", boms.list.len());
     }
 
     fn contains_null_byte(array: &mut [u8]) -> bool {
@@ -145,11 +143,11 @@ impl File {
 
         for (dst, src) in bytes.iter().zip(bom) {
             if *dst != *src {
-                println!("not matching bom");
+                // println!("not matching bom");
                 return false;
             }
         }
-        println!("Matches bom");
+        // println!("Matches bom");
         return true;
     }
 
@@ -164,15 +162,13 @@ impl File {
         if verbose {
             println!("Checking for boms");
         }
-        println!("boms.list.len() {}", boms.list.len());
+
         for mut bom in &mut boms.list {
             if File::matches_bom(bytes.to_vec(),&mut bom.value) {
                 if verbose {
-                    println!("Matches bom {}", bom.key);
                 }
                 return true;
             }
-            println!("Does not match bom {}", bom.key)
         }
         return false;
     }
