@@ -1,35 +1,27 @@
 extern crate algorithm;
-// extern crate walkdir;
 
 use structopt::StructOpt;
 
-// use walkdir::WalkDir;
 use opt::Opt;
 
 use crate::bom::Boms;
 use crate::file::File;
 use crate::filetype::FileType;
 use crate::filetype::FileType::Binary;
+use crate::stats::Stats;
 
 mod opt;
 mod file;
 mod filesystem;
 mod filetype;
 mod bom;
-
-// fn print_paths_recursively() {
-//     for dir_entry in WalkDir::new(".").into_iter().filter_map(|e| e.ok()) {
-//         if dir_entry.metadata().unwrap().is_file() {
-//             println!("{}", dir_entry.path().display());
-//         }
-//     }
-// }
+mod stats;
 
 fn main() {
     let opt = Opt::from_args();
-    // println!("Processing directory {}", opt.directory);
-    println!("Verbose output {}", if opt.verbose { "on" } else { "off" });
-
+    if opt.verbose {
+        println!("Verbose output on");
+    }
     start(&opt);
 }
 
@@ -38,21 +30,35 @@ fn start(opt: &Opt) {
 
     File::init_boms(&mut boms);
     let files = filesystem::scan_files_recursively(&opt.directory, opt.verbose);
-
+    let mut stats = Stats {
+        none_files: 0,
+        text_files: 0,
+        encoded_text_files: 0,
+        binary_files: 0,
+    };
     for mut file in files {
+        if opt.verbose {
+            println!("File {}", file.path);
+        }
         // TODO implement
         let mut file_type: FileType = file.get_file_type(&mut boms, opt.verbose);
         file.file_type = file_type;
-        let file_type: String;
-
-        match file.file_type {
-            FileType::None => file_type = "none".to_string(),
-            FileType::Text => file_type = "text".to_string(),
-            FileType::EncodedText => file_type = "encoded text".to_string(),
-            FileType::Binary => file_type = "binary".to_string(),
+        let file_type: String = file.get_updated_file_type(&file, &mut stats);
+        if opt.verbose {
+            println!("File is a {} file", file_type);
         }
-
-        println!("File is a {} file", file_type);
-        println!("File {}, file_type {}, matching_glob {}", file.path, file_type, file.matching_glob);
     }
+
+    if !opt.verbose {
+        return;
+    }
+    println!("-----------------");
+    println!("Statistics:");
+    println!("{} text files", stats.text_files);
+    println!("{} encoded text files", stats.encoded_text_files);
+    println!("{} binary files", stats.binary_files);
+    println!("{} none files", stats.none_files);
+
+    let total_files = stats.text_files + stats.encoded_text_files + stats.binary_files + stats.none_files;
+    println!("{} total", total_files);
 }

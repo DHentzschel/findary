@@ -7,6 +7,7 @@ use glob::Pattern;
 use crate::{bom, filetype};
 use crate::bom::{Bom, Boms};
 use crate::filetype::FileType;
+use crate::stats::Stats;
 
 pub struct File {
     pub matching_glob: String,
@@ -39,6 +40,7 @@ impl File {
             if verbose {
                 println!("{} - no such file or directory", self.path);
             }
+            println!("none");
             return FileType::None;
         }
         let mut file_stream = std::fs::File::open(self.path.to_string()).unwrap();
@@ -48,17 +50,14 @@ impl File {
         file_stream.read(&mut buffer).unwrap();
 
         if File::is_encoded_text_file(&mut buffer, boms, verbose) {
-            self.file_type = FileType::EncodedText;
-            if verbose {
-                println!("File {} is encoded text file", self.path);
-            }
+            println!("encoded text");
+            return FileType::EncodedText;
         }
 
         let mut buffer: [u8; 1024] = [0; 1024];
         file_stream.read(&mut buffer).unwrap();
 
-        let mut contains_null_byte = false;
-        contains_null_byte = File::contains_null_byte(&mut buffer);
+        let mut contains_null_byte = File::contains_null_byte(&mut buffer);
 
         while !contains_null_byte {
             let mut buffer: [u8; 1024] = [0; 1024];
@@ -66,11 +65,36 @@ impl File {
             contains_null_byte = File::contains_null_byte(&mut buffer);
 
             if contains_null_byte {
+                println!("binary");
                 return FileType::Binary;
             }
         }
 
+        println!("text");
         return FileType::Text;
+    }
+
+    pub fn get_updated_file_type(&self, file: &File, stats: &mut Stats) -> String {
+        let result;
+        match file.file_type {
+            FileType::None => {
+                stats.none_files += 1;
+                result = "none".to_string()
+            }
+            FileType::Text => {
+                stats.text_files += 1;
+                result = "text".to_string()
+            }
+            FileType::EncodedText => {
+                stats.encoded_text_files += 1;
+                result = "encoded text".to_string()
+            }
+            FileType::Binary => {
+                stats.binary_files += 1;
+                result = "binary".to_string()
+            }
+        }
+        return result;
     }
 
     pub fn init_boms(boms: &mut Boms) {
@@ -151,12 +175,12 @@ impl File {
         return true;
     }
 
-    fn to_hex_string(bytes: Vec<u8>) -> String {
-        let strs: Vec<String> = bytes.iter()
-            .map(|b| format!("{:02X}", b))
-            .collect();
-        strs.join(" ")
-    }
+    // fn to_hex_string(bytes: Vec<u8>) -> String {
+    //     let strs: Vec<String> = bytes.iter()
+    //         .map(|b| format!("{:02X}", b))
+    //         .collect();
+    //     strs.join(" ")
+    // }
 
     fn is_encoded_text_file(bytes: &mut [u8; 10], boms: &mut Boms, verbose: bool) -> bool {
         if verbose {
@@ -164,9 +188,8 @@ impl File {
         }
 
         for mut bom in &mut boms.list {
-            if File::matches_bom(bytes.to_vec(),&mut bom.value) {
-                if verbose {
-                }
+            if File::matches_bom(bytes.to_vec(), &mut bom.value) {
+                if verbose {}
                 return true;
             }
         }
