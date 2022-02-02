@@ -5,11 +5,15 @@ use structopt::StructOpt;
 
 // use walkdir::WalkDir;
 use opt::Opt;
+
 use crate::file::File;
+use crate::filetype::FileType::Binary;
 
 mod opt;
 mod file;
 mod filesystem;
+mod filetype;
+mod bom;
 
 // fn print_paths_recursively() {
 //     for dir_entry in WalkDir::new(".").into_iter().filter_map(|e| e.ok()) {
@@ -32,7 +36,10 @@ fn start(opt: &Opt) {
     let files = filesystem::scan_files_recursively(&opt.directory, opt.verbose);
     for mut file in files {
         // TODO implement
-        file.is_binary = file.is_binary_type();
-        println!("File {}, is_binary {}, matching_glob {}", file.path, file.is_binary, file.matching_glob);
+        let is_binary = file.is_binary_type(opt.verbose);
+        if is_binary {
+            println!("File is binary");
+        }
+        println!("File {}, is_binary {}, matching_glob {}", file.path, is_binary, file.matching_glob);
     }
 }
