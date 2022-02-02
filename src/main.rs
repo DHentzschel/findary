@@ -28,6 +28,7 @@ fn main() {
 }
 
 fn start(opt: &Opt) {
+    File::init();
     let files = filesystem::scan_files_recursively(&opt.directory, opt.verbose);
     for mut file in files {
         // TODO implement
