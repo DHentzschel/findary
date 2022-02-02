@@ -15,10 +15,6 @@ impl File {
         std::fs::read_to_string(path).unwrap()
     }
 
-    fn is_match(&self, glob: &String) -> bool {
-        Pattern::new(glob).unwrap().matches(&self.path)
-    }
-
     pub fn exists(&self) -> bool {
         Path::new(&self.path).is_file()
     }
@@ -29,15 +25,6 @@ impl File {
             path: full_path,
             is_binary: false,
         }
-    }
-
-    fn contains_null_byte(array: [u8; 10]) -> bool {
-        for byte in array {
-            if byte as char == '\0' {
-                return true;
-            }
-        }
-        return false;
     }
 
     pub fn is_binary_type(&mut self) -> bool {
@@ -51,15 +38,33 @@ impl File {
         // read up to 10 bytes
         file_stream.read(&mut buffer).unwrap();
 
-        self.is_binary = File::contains_null_byte(buffer);
+        self.is_binary = File::contains_null_byte(&mut buffer);
+
+        if self.is_binary {
+            return true;
+        }
 
         let mut buffer: [u8; 1024] = [0; 1024];
+        file_stream.read(&mut buffer).unwrap();
+        self.is_binary = File::contains_null_byte( &mut buffer);
 
+        return false;
+    }
 
+    fn contains_null_byte(array: &mut [u8]) -> bool {
+        for byte in array {
+            if *byte as char == '\0' {
+                return true;
+            }
+        }
         return false;
     }
 
     fn get_matching_glob() -> String {
         "<none>".to_string()
+    }
+
+    fn is_match(&self, glob: &String) -> bool {
+        Pattern::new(glob).unwrap().matches(&self.path)
     }
 }
