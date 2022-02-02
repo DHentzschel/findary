@@ -44,7 +44,7 @@ impl File {
             return FileType::None;
         }
         let mut file_stream = std::fs::File::open(self.path.to_string()).unwrap();
-        let mut buffer = [0; 10];
+        let mut buffer = [0; 4];
 
         // read up to 10 bytes
         file_stream.read(&mut buffer).unwrap();
@@ -182,7 +182,7 @@ impl File {
     //     strs.join(" ")
     // }
 
-    fn is_encoded_text_file(bytes: &mut [u8; 10], boms: &mut Boms, verbose: bool) -> bool {
+    fn is_encoded_text_file(bytes: &mut [u8], boms: &mut Boms, verbose: bool) -> bool {
         if verbose {
             println!("Checking for boms");
         }
