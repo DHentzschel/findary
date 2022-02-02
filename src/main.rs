@@ -5,6 +5,7 @@ use structopt::StructOpt;
 
 // use walkdir::WalkDir;
 use opt::Opt;
+use crate::bom::Boms;
 
 use crate::file::File;
 use crate::filetype::FileType::Binary;
@@ -32,11 +33,14 @@ fn main() {
 }
 
 fn start(opt: &Opt) {
-    File::init();
+    let mut boms = Boms::new();
+
+    File::init_boms(&mut boms);
     let files = filesystem::scan_files_recursively(&opt.directory, opt.verbose);
+
     for mut file in files {
         // TODO implement
-        let is_binary = file.is_binary_type(opt.verbose);
+        let is_binary = file.is_binary_type(&mut boms, opt.verbose);
         if is_binary {
             println!("File is binary");
         }
