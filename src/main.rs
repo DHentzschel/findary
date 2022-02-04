@@ -16,6 +16,9 @@ mod filesystem;
 mod filetype;
 mod bom;
 mod stats;
+mod plugin;
+mod gitignore;
+mod gitattributes;
 
 fn main() {
     let opt = Opt::from_args();
@@ -61,4 +64,6 @@ fn start(opt: &Opt) {
 
     let total_files = stats.text_files + stats.encoded_text_files + stats.binary_files + stats.none_files;
     println!("{} total", total_files);
+
+
 }

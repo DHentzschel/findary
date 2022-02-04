@@ -4,7 +4,7 @@ use std::path::Path;
 
 use glob::Pattern;
 
-use crate::{bom, filetype};
+use crate::{bom, filesystem, filetype};
 use crate::bom::{Bom, Boms};
 use crate::filetype::FileType;
 use crate::stats::Stats;
@@ -21,10 +21,6 @@ impl File {
         std::fs::read_to_string(path).unwrap()
     }
 
-    pub fn exists(&self) -> bool {
-        Path::new(&self.path).is_file()
-    }
-
     pub fn new(full_path: String) -> File {
         File {
             matching_glob: "".to_string(),
@@ -36,11 +32,10 @@ impl File {
 
     pub fn get_file_type(&mut self, boms: &mut Boms, verbose: bool) -> FileType {
         self.matching_glob = File::get_matching_glob();
-        if !self.exists() {
+        if !filesystem::exists(&self.path) {
             if verbose {
                 println!("{} - no such file or directory", self.path);
             }
-            println!("none");
             return FileType::None;
         }
         let mut file_stream = std::fs::File::open(self.path.to_string()).unwrap();
@@ -50,7 +45,6 @@ impl File {
         file_stream.read(&mut buffer).unwrap();
 
         if File::is_encoded_text_file(&mut buffer, boms, verbose) {
-            println!("encoded text");
             return FileType::EncodedText;
         }
 
@@ -65,12 +59,10 @@ impl File {
             contains_null_byte = File::contains_null_byte(&mut buffer);
 
             if contains_null_byte {
-                println!("binary");
                 return FileType::Binary;
             }
         }
 
-        println!("text");
         return FileType::Text;
     }
 
@@ -184,7 +176,7 @@ impl File {
 
     fn is_encoded_text_file(bytes: &mut [u8], boms: &mut Boms, verbose: bool) -> bool {
         if verbose {
-            println!("Checking for boms");
+            println!("Searching BOMs");
         }
 
         for mut bom in &mut boms.list {

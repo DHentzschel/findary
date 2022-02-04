@@ -1,3 +1,4 @@
+use std::path::Path;
 use walkdir::WalkDir;
 
 use crate::file::File;
@@ -26,4 +27,8 @@ pub fn scan_files_recursively(path_glob: &String, verbose: bool) -> Vec<File> {
         result.push(file);
     }
     return result;
+}
+
+pub fn exists(path: &String) -> bool {
+    Path::new(path).is_file()
 }
